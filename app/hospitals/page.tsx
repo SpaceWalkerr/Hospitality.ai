@@ -22,7 +22,7 @@ type Sort = "match" | "cost" | "distance";
 
 export default function HospitalsPage() {
   const router = useRouter();
-  const { session, update, hydrated, config } = useStore();
+  const { session, update, hydrated } = useStore();
   const { run, running, status, error } = useNdjson();
   const lastKey = useRef<string>("");
 

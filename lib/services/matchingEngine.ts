@@ -11,7 +11,7 @@ import type {
   TradeOff,
 } from "@/lib/types";
 import { getLocality, listHospitals } from "@/lib/data/hospitals";
-import { EFFORT, MODEL, SAFETY_PREAMBLE, getClient } from "./anthropic";
+import { MODEL, SAFETY_PREAMBLE, getClient } from "./anthropic";
 
 /**
  * Hospital & Room Matching Engine.

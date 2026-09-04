@@ -37,6 +37,8 @@ cp .env.example .env.local   # add ANTHROPIC_API_KEY for live model calls
 npm run dev
 ```
 
+`npm run typecheck`, `npm run lint` and `npm run build` are all clean.
+
 Open http://localhost:3000.
 
 ### Demo Mode
@@ -155,6 +157,13 @@ touching callers.
 **Keys** never reach the browser. Every model call goes through a route handler
 that imports from `lib/services/anthropic.ts`, which is the only place a client
 is constructed.
+
+**PDF upload** rebuilds text line by line from glyph positions
+(`app/api/policy/extract/route.ts`) rather than accepting a flat string. Every
+coverage claim cites a line range, so a PDF that collapsed into one paragraph
+would leave every citation pointing at "line 1". Citations authored against the
+original documents still resolve `exact` against the PDF-extracted text, whose
+line wrapping differs — the quote normaliser is insensitive to re-wrapping.
 
 **Streaming** is newline-delimited JSON over `fetch` + `ReadableStream`. One
 response carries both structured payloads and token deltas, so the hospital
