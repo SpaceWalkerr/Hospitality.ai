@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppShell, SparkIcon } from "@/components/AppShell";
 import { HospitalCard } from "@/components/HospitalCard";
+import { TradeOffPlot } from "@/components/viz/TradeOffPlot";
+import { Reveal } from "@/components/motion";
 import {
   ErrorNote,
+  Meter,
   Pill,
   SectionHeading,
   Skeleton,
@@ -26,6 +29,7 @@ export default function HospitalsPage() {
   const { run, running, status, error } = useNdjson();
   const lastKey = useRef<string>("");
 
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [sort, setSort] = useState<Sort>("match");
   const [filters, setFilters] = useState({
     networkOnly: false,
@@ -56,6 +60,26 @@ export default function HospitalsPage() {
       },
     );
   }, [hydrated, session.policy, ctxKey, router, run, update, session.ctx]);
+
+  /** A point on the plot is the same thing as a card in the list. */
+  const focusHospital = useCallback(
+    (hospitalId: string) => {
+      const match = session.matches.find((m) => m.hospital.id === hospitalId);
+      if (!match) return;
+      update({
+        chosen: {
+          hospitalId,
+          roomCategory: match.bestRoom?.room.category ?? "General Ward",
+        },
+        guidance: {},
+      });
+      cardRefs.current[hospitalId]?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    },
+    [session.matches, update],
+  );
 
   const visible = useMemo(() => {
     let list = [...session.matches];
@@ -99,29 +123,58 @@ export default function HospitalsPage() {
           onChange={(next) => update({ ctx: next, matches: [], comparison: "" })}
         />
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[1.3fr_1fr]">
-          <div className="card relative overflow-hidden p-5">
-            <div className="absolute inset-y-0 left-0 w-[3px] bg-plum-300" />
-            <div className="mb-3.5 flex items-center justify-between gap-3">
-              <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-plum-400 uppercase">
-                <SparkIcon className="size-3.5" />
-                Reading the ranking
+        <div className="mt-6 grid gap-4 lg:grid-cols-[1.55fr_1fr]">
+          <div className="card p-5">
+            <div className="mb-1 flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="font-display text-[19px] leading-tight text-ink">
+                  The shape of the choice
+                </h2>
+                <p className="mt-1 max-w-md text-[12.5px] leading-relaxed text-ink-muted">
+                  How far you travel against what you end up paying — closer
+                  and cheaper is the bottom-left. Press any point to jump to it.
+                </p>
               </div>
-              {running && <StatusLine status={status} />}
+              {running && !session.matches.length && (
+                <StatusLine status={status} />
+              )}
             </div>
-            <StreamingProse
-              text={session.comparison}
-              streaming={running}
-              className="[&_p]:text-[15.5px]"
-            />
-            <p className="mt-4 border-t border-line pt-3 text-[12px] leading-relaxed text-ink-subtle">
-              Cost and coverage only. This is not a comparison of clinical
-              quality, and empanelment changes — confirm with the hospital&rsquo;s
-              insurance desk before admission.
-            </p>
+            <div className="mt-3">
+              {session.matches.length ? (
+                <TradeOffPlot
+                  matches={session.matches}
+                  policy={policy}
+                  selectedId={session.chosen?.hospitalId ?? null}
+                  onSelect={focusHospital}
+                />
+              ) : (
+                <Skeleton className="h-[280px] w-full" />
+              )}
+            </div>
           </div>
 
           <CoverageContext policy={policy} matches={session.matches} />
+        </div>
+
+        <div className="card relative mt-4 overflow-hidden p-5">
+          <div className="absolute inset-y-0 left-0 w-[3px] bg-plum-300" />
+          <div className="mb-3.5 flex items-center justify-between gap-3">
+            <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-plum-400 uppercase">
+              <SparkIcon className="size-3.5" />
+              Reading the ranking
+            </div>
+            {running && <StatusLine status={status} />}
+          </div>
+          <StreamingProse
+            text={session.comparison}
+            streaming={running}
+            className="max-w-[68ch] [&_p]:text-[15.5px]"
+          />
+          <p className="mt-4 border-t border-line pt-3 text-[12px] leading-relaxed text-ink-subtle">
+            Cost and coverage only. This is not a comparison of clinical
+            quality, and empanelment changes — confirm with the hospital&rsquo;s
+            insurance desk before admission.
+          </p>
         </div>
 
         {error && (
@@ -202,27 +255,33 @@ export default function HospitalsPage() {
             ))}
 
           {visible.map((m, i) => (
-            <div
+            <Reveal
               key={m.hospital.id}
-              className="animate-rise"
-              style={{ animationDelay: `${Math.min(i, 6) * 45}ms` }}
+              delay={Math.min(i, 5) * 55}
             >
-              <HospitalCard
-                match={m}
-                rank={i + 1}
-                policy={policy}
-                chosen={session.chosen?.hospitalId === m.hospital.id}
-                onChoose={() =>
-                  update({
-                    chosen: {
-                      hospitalId: m.hospital.id,
-                      roomCategory: m.bestRoom?.room.category ?? "General Ward",
-                    },
-                    guidance: {},
-                  })
-                }
-              />
-            </div>
+              <div
+                ref={(el) => {
+                  cardRefs.current[m.hospital.id] = el;
+                }}
+                className="scroll-mt-32"
+              >
+                <HospitalCard
+                  match={m}
+                  rank={i + 1}
+                  policy={policy}
+                  chosen={session.chosen?.hospitalId === m.hospital.id}
+                  onChoose={() =>
+                    update({
+                      chosen: {
+                        hospitalId: m.hospital.id,
+                        roomCategory: m.bestRoom?.room.category ?? "General Ward",
+                      },
+                      guidance: {},
+                    })
+                  }
+                />
+              </div>
+            </Reveal>
           ))}
 
           {!running && !visible.length && (
@@ -326,7 +385,7 @@ function CaseBar({
             }
             className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-surface-sunk accent-plum-500"
           />
-          <span className="tnum w-14 shrink-0 text-[13.5px] font-medium text-ink">
+          <span className="figure w-14 shrink-0 text-[13.5px] text-ink">
             {ctx.expectedDays} {ctx.expectedDays === 1 ? "day" : "days"}
           </span>
         </div>
@@ -434,6 +493,31 @@ function CoverageContext({
         )}
       </dl>
 
+      {cheapest?.estimate && (
+        <div className="mt-5 border-t border-line pt-4">
+          <div className="mb-2 flex items-baseline justify-between gap-3">
+            <span className="text-[11px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
+              Best case against your cover
+            </span>
+          </div>
+          <Meter
+            value={cheapest.estimate.policyPays}
+            max={policy.sumInsured.amount}
+            tone={
+              cheapest.estimate.policyPays / policy.sumInsured.amount > 0.85
+                ? "warn"
+                : "good"
+            }
+            leftLabel={`${inr(cheapest.estimate.policyPays)} of your cover used`}
+            rightLabel={inr(policy.sumInsured.amount)}
+          />
+          <p className="mt-2.5 text-[12px] leading-relaxed text-ink-subtle">
+            At {cheapest.hospital.name}, the option that leaves least with you.
+            Whatever the policy bears here comes off the same annual pot.
+          </p>
+        </div>
+      )}
+
       <div className="mt-auto grid grid-cols-3 gap-2 border-t border-line pt-4">
         <Mini label="In network" value={`${inNetwork}/${matches.length || 0}`} />
         <Mini label="Room fits" value={`${covered}/${matches.length || 0}`} />
@@ -462,7 +546,7 @@ function Line({
         {tone ? (
           <Pill tone={tone}>{detail}</Pill>
         ) : (
-          <span className="tnum text-[13px] font-medium text-ink">{detail}</span>
+          <span className="figure text-[13px] text-ink">{detail}</span>
         )}
       </dd>
     </div>
@@ -475,7 +559,7 @@ function Mini({ label, value }: { label: string; value: string }) {
       <div className="text-[10.5px] font-semibold tracking-[0.1em] text-ink-subtle uppercase">
         {label}
       </div>
-      <div className="tnum mt-1 font-display text-[16px] leading-none text-ink">
+      <div className="figure mt-1 text-[16px] leading-none text-ink">
         {value}
       </div>
     </div>

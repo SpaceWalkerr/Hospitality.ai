@@ -33,27 +33,34 @@ export function CapMeter({
       {label && (
         <div className="flex items-baseline justify-between gap-3">
           <span className="text-[12.5px] font-medium text-ink-muted">{label}</span>
-          <span className="tnum text-[12.5px] font-semibold text-ink">
+          <span className="figure text-[12.5px] text-ink">
             {inr(rate)}
             <span className="font-normal text-ink-subtle">/day</span>
           </span>
         </div>
       )}
       <div className="relative">
+        {/* Two stacked segments, not a meter: within-limit and over-limit are
+            different things, so a 2px surface gap does the separating rather
+            than a stroke. The over-cap portion is hatched as well as red so it
+            survives print and forced-colors. */}
         <div className="flex h-[9px] w-full overflow-hidden rounded-full bg-surface-sunk">
           <div
-            className="h-full rounded-l-full bg-sage-500 transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+            className="h-full rounded-full bg-viz-good transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
             style={{ width: `${withinPct}%` }}
           />
           {over && (
-            <div
-              className="h-full bg-clay-500 transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
-              style={{
-                width: `${overPct}%`,
-                backgroundImage:
-                  "repeating-linear-gradient(115deg, rgba(255,255,255,.28) 0 3px, transparent 3px 7px)",
-              }}
-            />
+            <>
+              <span className="h-full w-[2px] shrink-0 bg-surface" />
+              <div
+                className="h-full rounded-full bg-viz-bad transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                style={{
+                  width: `calc(${overPct}% - 2px)`,
+                  backgroundImage:
+                    "repeating-linear-gradient(115deg, rgba(255,255,255,.32) 0 3px, transparent 3px 7px)",
+                }}
+              />
+            </>
           )}
         </div>
         {capPct != null && (
@@ -73,7 +80,7 @@ export function CapMeter({
                 ? `${inr(rate - cap)}/day over your limit`
                 : `${inr(cap - rate)}/day of headroom`}
           </span>
-          <span className="tnum text-ink-subtle">
+          <span className="figure text-ink-subtle">
             {cap != null ? `Limit ${inr(cap)}` : ""}
           </span>
         </div>

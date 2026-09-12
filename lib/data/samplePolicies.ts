@@ -442,10 +442,10 @@ export const SAMPLE_POLICIES: SamplePolicy[] = [
   },
   {
     id: "pmjay",
-    label: "Ayushman Bharat PM-JAY entitlement",
+    label: "Ayushman Bharat PM-JAY",
     insurer: "National Health Authority",
     blurb:
-      "₹5L per family per year, fully cashless — but only at empanelled hospitals, and only in the general ward. Nothing is reimbursed outside the network.",
+      "Family entitlement record. ₹5L per family per year, fully cashless — but only at empanelled hospitals, and only in the general ward. Nothing is reimbursed outside the network.",
     tag: "Government scheme",
     accent: "sage",
     text: PMJAY,

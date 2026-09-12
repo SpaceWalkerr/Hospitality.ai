@@ -103,13 +103,96 @@ export function StatTile({
       <div className="text-[11px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
         {label}
       </div>
-      <div className="tnum mt-2 font-display text-[26px] leading-none text-ink sm:text-[29px]">
+      <div className="figure mt-2 text-[25px] leading-none text-ink sm:text-[28px]">
         {value}
       </div>
       {sub && (
         <div className="mt-1.5 text-[12.5px] leading-snug text-ink-muted">{sub}</div>
       )}
       {footer && <div className="mt-3">{footer}</div>}
+    </div>
+  );
+}
+
+/**
+ * The one number a screen leads with. Sans, never the serif: a display face on
+ * a figure reads as decoration, and this number is a fact the reader is going
+ * to act on. Exactly one per view.
+ */
+export function HeroFigure({
+  label,
+  value,
+  caption,
+  children,
+}: {
+  label: string;
+  value: React.ReactNode;
+  caption?: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div>
+      <div className="text-[11px] font-semibold tracking-[0.14em] text-ink-subtle uppercase">
+        {label}
+      </div>
+      <div className="hero-figure mt-2.5 text-[clamp(34px,4.2vw,50px)] text-ink">
+        {value}
+      </div>
+      {caption && (
+        <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-ink-muted">
+          {caption}
+        </p>
+      )}
+      {children && <div className="mt-4">{children}</div>}
+    </div>
+  );
+}
+
+/**
+ * A single ratio against a limit.
+ *
+ * The unfilled track is a lighter step of the fill's own ramp rather than a
+ * neutral grey, so the state reads across the whole bar.
+ */
+export function Meter({
+  value,
+  max,
+  tone = "good",
+  leftLabel,
+  rightLabel,
+}: {
+  value: number;
+  max: number;
+  tone?: "good" | "warn" | "bad";
+  leftLabel?: string;
+  rightLabel?: string;
+}) {
+  const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+  const fill = {
+    good: "bg-viz-good",
+    warn: "bg-viz-warn",
+    bad: "bg-viz-bad",
+  }[tone];
+  const track = {
+    good: "bg-viz-good-wash",
+    warn: "bg-viz-warn-wash",
+    bad: "bg-viz-bad-wash",
+  }[tone];
+
+  return (
+    <div>
+      <div className={`h-[10px] w-full overflow-hidden rounded-full ${track}`}>
+        <div
+          className={`h-full rounded-full ${fill} transition-[width] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)]`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      {(leftLabel || rightLabel) && (
+        <div className="mt-1.5 flex items-center justify-between gap-3 text-[11.5px]">
+          <span className="text-ink-muted">{leftLabel}</span>
+          <span className="figure font-medium text-ink-subtle">{rightLabel}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -133,7 +216,7 @@ export function StatusLine({
         <span className="animate-breathe absolute inline-flex size-2 rounded-full bg-plum-400" />
       </span>
       <span className="text-[13px] font-medium text-ink-muted">{status.label}</span>
-      <span className="tnum text-[11.5px] text-ink-subtle">
+      <span className="figure text-[11.5px] font-normal text-ink-subtle">
         {status.step}/{status.of}
       </span>
     </div>

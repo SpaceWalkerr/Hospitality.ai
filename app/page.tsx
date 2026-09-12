@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { CapMeter } from "@/components/CapMeter";
+import { AmbientWash, ArchField, ArchRule } from "@/components/Ornament";
+import { Reveal } from "@/components/motion";
 import { ErrorNote, Pill } from "@/components/ui";
 import { SAMPLE_POLICIES } from "@/lib/data/samplePolicies";
 import { useStore } from "@/lib/store";
@@ -13,82 +15,204 @@ type Tab = "sample" | "paste" | "upload";
 export default function Landing() {
   return (
     <AppShell>
-      <div className="mx-auto grid max-w-[1240px] gap-12 px-4 pt-10 pb-16 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14 lg:pt-16">
-        <Hero />
-        <div className="lg:sticky lg:top-[132px] lg:self-start">
-          <StartCard />
-        </div>
-      </div>
-      <HowItWorks />
+      <Hero />
+      <Questions />
+      <Showcase />
       <Boundaries />
+      <Footer />
     </AppShell>
   );
 }
 
 function Hero() {
   return (
-    <div className="animate-rise">
-      <div className="inline-flex items-center gap-2 rounded-full border border-plum-200 bg-plum-50 px-3 py-1 text-[11.5px] font-semibold tracking-[0.11em] text-plum-600 uppercase">
-        Insurance-aware care navigation
+    <section className="relative overflow-hidden">
+      <AmbientWash />
+
+      {/* The arch motif as a watermark behind the headline — the wordmark's
+          portico at scale, drawn once on load. Sits under the type rather than
+          beside it so it reads as the room the words are standing in. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute top-6 -left-24 hidden w-[720px] text-plum-300/55 lg:block"
+      >
+        <ArchField className="w-full" />
       </div>
 
-      <h1 className="mt-5 font-display text-[38px] leading-[1.08] tracking-[-0.025em] text-ink sm:text-[52px] lg:text-[58px]">
-        Nobody should have to decode a policy document
-        <span className="text-plum-500"> at 3am.</span>
-      </h1>
+      <div className="relative mx-auto grid max-w-[1240px] items-start gap-12 px-4 pt-12 pb-20 sm:px-6 lg:grid-cols-[1.06fr_0.94fr] lg:gap-16 lg:pt-20 lg:pb-28">
+        <div className="animate-rise relative">
+          <span className="inline-flex items-center gap-2 rounded-full border border-plum-200 bg-surface/70 px-3 py-1 text-[11px] font-semibold tracking-[0.13em] text-plum-600 uppercase backdrop-blur-sm">
+            <span className="size-1.5 rounded-full bg-plum-400" />
+            Insurance-aware care navigation
+          </span>
 
-      <p className="mt-6 max-w-xl text-[16px] leading-[1.68] text-ink-muted sm:text-[17px]">
-        When someone is being admitted, the questions come fast and the answers
-        are buried in forty pages of clauses. Which hospitals are in network.
-        What room you are entitled to. What comes back to you, and what does
-        not. Hospitality reads your cover, answers those questions in plain
-        language, and shows you the exact line every answer came from.
-      </p>
+          <h1 className="mt-6 font-display text-[42px] leading-[1.02] tracking-[-0.03em] text-ink sm:text-[58px] lg:text-[68px]">
+            Nobody should have
+            <br className="hidden sm:block" /> to decode a policy
+            <br className="hidden sm:block" /> document{" "}
+            <em className="font-normal text-plum-500 italic">at 3am.</em>
+          </h1>
 
-      <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-[13px] text-ink-muted">
-        <span className="inline-flex items-center gap-2">
-          <CheckMark /> Every claim cites its clause
-        </span>
-        <span className="inline-flex items-center gap-2">
-          <CheckMark /> Works on a phone in a waiting room
-        </span>
-        <span className="inline-flex items-center gap-2">
-          <CheckMark /> Never diagnoses or advises treatment
-        </span>
+          <p className="mt-7 max-w-xl text-[16.5px] leading-[1.72] text-ink-muted sm:text-[17.5px]">
+            When someone is being admitted, the questions come fast and the
+            answers are buried in forty pages of clauses. Hospitality reads your
+            cover, answers them in plain language, and shows you the exact line
+            every answer came from.
+          </p>
+
+          <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+            {[
+              "Every claim cites its clause",
+              "Built for a phone in a waiting room",
+              "Never diagnoses or advises treatment",
+            ].map((t, i) => (
+              <Reveal
+                key={t}
+                delay={220 + i * 90}
+                className="inline-flex items-center gap-2 text-[13px] text-ink-muted"
+              >
+                <CheckMark /> {t}
+              </Reveal>
+            ))}
+          </div>
+        </div>
+
+        <div className="lg:sticky lg:top-[124px]">
+          <StartCard />
+        </div>
       </div>
-
-      <PreviewCard />
-    </div>
+    </section>
   );
 }
 
-function PreviewCard() {
+const QUESTIONS = [
+  {
+    n: "01",
+    q: "Which hospitals will actually take my card?",
+    a: "Your policy's network is cross-referenced against every hospital, room category and daily rate — then ranked, with the trade-offs said out loud rather than buried in a score.",
+    to: "Hospital finder",
+  },
+  {
+    n: "02",
+    q: "What room am I allowed to ask for?",
+    a: "Room rent is the most consequential number in an Indian admission and almost never shown visually. We draw it against your limit, and warn you when taking a better room quietly scales down the surgeon's fee too.",
+    to: "Coverage dashboard",
+  },
+  {
+    n: "03",
+    q: "What am I going to be asked to pay at discharge?",
+    a: "Co-pay, deductible, sub-limits, consumables, proportionate deduction, the reimbursement haircut. Each modelled, each itemised, none of it guessed.",
+    to: "Cost estimate",
+  },
+];
+
+function Questions() {
   return (
-    <div className="animate-rise mt-10 max-w-lg" style={{ animationDelay: "160ms" }}>
-      <div className="card overflow-hidden">
-        <div className="flex items-center justify-between gap-3 border-b border-line bg-canvas px-4 py-2.5">
-          <span className="text-[11px] font-semibold tracking-[0.14em] text-ink-subtle uppercase">
-            What the room limit actually means
-          </span>
-          <Pill tone="clay">Over limit</Pill>
-        </div>
-        <div className="space-y-4 p-4">
-          <CapMeter
-            rate={11500}
-            cap={5000}
-            label="Single Private — Kaveri Institute of Medical Sciences"
-          />
-          <div className="rounded-[10px] border border-ochre-300/50 bg-ochre-50 p-3">
-            <p className="text-[13px] leading-relaxed text-ochre-700">
-              Because this policy applies proportionate deduction, taking this
-              room does not just cost ₹6,500 a day more — it also scales the
-              surgeon&rsquo;s fee, theatre charges and nursing down to 43% of
-              the bill.
-            </p>
-          </div>
+    <section className="border-t border-line/70 bg-surface/50">
+      <div className="mx-auto max-w-[1240px] px-4 py-16 sm:px-6 lg:py-24">
+        <Reveal className="max-w-2xl">
+          <h2 className="font-display text-[30px] leading-[1.15] tracking-[-0.02em] text-ink sm:text-[38px]">
+            Three questions nobody can answer
+            <em className="font-normal text-plum-500 italic"> in a corridor.</em>
+          </h2>
+        </Reveal>
+
+        <ArchRule className="my-10" />
+
+        <div className="grid gap-10 md:grid-cols-3 md:gap-8">
+          {QUESTIONS.map((item, i) => (
+            <Reveal key={item.n} delay={i * 120}>
+              <div className="figure text-[12px] tracking-[0.2em] text-plum-300">
+                {item.n}
+              </div>
+              <h3 className="mt-3.5 font-display text-[21px] leading-snug text-ink">
+                {item.q}
+              </h3>
+              <p className="mt-3 text-[14px] leading-[1.72] text-ink-muted">
+                {item.a}
+              </p>
+              <div className="mt-4 inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.11em] text-plum-400 uppercase">
+                <span className="h-px w-5 bg-plum-300" />
+                {item.to}
+              </div>
+            </Reveal>
+          ))}
         </div>
       </div>
-    </div>
+    </section>
+  );
+}
+
+function Showcase() {
+  return (
+    <section className="mx-auto max-w-[1240px] px-4 py-16 sm:px-6 lg:py-24">
+      <div className="grid items-center gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
+        <Reveal>
+          <div className="text-[11px] font-semibold tracking-[0.16em] text-plum-400 uppercase">
+            The clause that catches people
+          </div>
+          <h2 className="mt-3 font-display text-[28px] leading-[1.16] tracking-[-0.02em] text-ink sm:text-[34px]">
+            A nicer room can cost you
+            <em className="font-normal text-plum-500 italic"> four times</em> the
+            room difference.
+          </h2>
+          <p className="mt-4 max-w-lg text-[14.5px] leading-[1.75] text-ink-muted">
+            Most retail policies in India cap room rent at 1% of the sum insured
+            and then apply <strong className="font-semibold text-ink">proportionate
+            deduction</strong>: exceed the cap and the insurer pays a reduced
+            share of <em>every</em> associated charge — surgeon, anaesthetist,
+            theatre, nursing — in the same ratio. On a ₹2.5 lakh bill that is
+            usually far more than the room itself.
+          </p>
+          <p className="mt-3.5 max-w-lg text-[13.5px] leading-relaxed text-ink-subtle">
+            It is one sentence, on page nine, in a document nobody reads at
+            admission. So we put it on the first screen instead.
+          </p>
+        </Reveal>
+
+        <Reveal delay={140}>
+          <div className="card overflow-hidden shadow-[var(--shadow-lift)]">
+            <div className="flex items-center justify-between gap-3 border-b border-line bg-canvas px-4 py-3">
+              <span className="text-[11px] font-semibold tracking-[0.14em] text-ink-subtle uppercase">
+                Single Private · Kaveri Institute
+              </span>
+              <Pill tone="clay">Over limit</Pill>
+            </div>
+            <div className="space-y-4 p-4 sm:p-5">
+              <CapMeter rate={11500} cap={5000} label="Room rent" />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-[11px] border border-line bg-canvas p-3.5">
+                  <div className="text-[11px] font-semibold tracking-[0.12em] text-ink-subtle uppercase">
+                    Room difference
+                  </div>
+                  <div className="figure mt-1.5 text-[22px] leading-none text-ink">
+                    ₹26,000
+                  </div>
+                  <div className="mt-1 text-[11.5px] text-ink-subtle">
+                    4 days over the cap
+                  </div>
+                </div>
+                <div className="rounded-[11px] border border-clay-300/50 bg-clay-50 p-3.5">
+                  <div className="text-[11px] font-semibold tracking-[0.12em] text-clay-600 uppercase">
+                    Also deducted
+                  </div>
+                  <div className="figure mt-1.5 text-[22px] leading-none text-clay-600">
+                    ₹1,39,650
+                  </div>
+                  <div className="mt-1 text-[11.5px] text-clay-600/80">
+                    57% of every associated charge
+                  </div>
+                </div>
+              </div>
+              <p className="text-[12.5px] leading-relaxed text-ink-subtle">
+                Illustrative, on the bundled Meridian sample policy. Your own
+                numbers come from your own document.
+              </p>
+            </div>
+          </div>
+        </Reveal>
+      </div>
+    </section>
   );
 }
 
@@ -101,7 +225,12 @@ function StartCard() {
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const begin = (text: string, name: string, origin: "sample" | "paste" | "pdf", sampleId?: string) => {
+  const begin = (
+    text: string,
+    name: string,
+    origin: "sample" | "paste" | "pdf",
+    sampleId?: string,
+  ) => {
     update({
       source: { text, name, origin },
       sampleId: sampleId ?? null,
@@ -135,14 +264,16 @@ function StartCard() {
   };
 
   return (
-    <div className="card animate-rise overflow-hidden" style={{ animationDelay: "80ms" }}>
+    <div
+      className="card animate-rise overflow-hidden shadow-[var(--shadow-hero)]"
+      style={{ animationDelay: "120ms" }}
+    >
       <div className="border-b border-line px-5 pt-5 pb-4">
-        <h2 className="font-display text-[21px] leading-tight text-ink">
+        <h2 className="font-display text-[22px] leading-tight text-ink">
           Start with your policy
         </h2>
         <p className="mt-1.5 text-[13.5px] leading-relaxed text-ink-muted">
-          Nothing you add here leaves this app — the document is read on the
-          server and never stored.
+          Read on the server, never stored. Nothing you add here leaves this app.
         </p>
       </div>
 
@@ -161,7 +292,7 @@ function StartCard() {
               setTab(id);
               setError(null);
             }}
-            className={`flex-1 rounded-[9px] px-3 py-2 text-[13px] font-medium transition-colors ${
+            className={`flex-1 rounded-[9px] px-3 py-2 text-[13px] font-medium transition-all duration-200 ${
               tab === id
                 ? "bg-surface text-ink shadow-[0_1px_2px_rgba(36,28,43,.07)]"
                 : "text-ink-subtle hover:text-ink-muted"
@@ -174,21 +305,22 @@ function StartCard() {
 
       <div className="p-4 sm:p-5">
         {tab === "sample" && (
-          <div className="stagger space-y-2.5" style={{ ["--stagger-step" as string]: "60ms" }}>
+          <div className="stagger space-y-2.5" style={{ ["--stagger-step" as string]: "70ms" }}>
             {SAMPLE_POLICIES.map((s, i) => (
               <button
                 key={s.id}
                 type="button"
                 style={{ ["--i" as string]: i }}
                 onClick={() => begin(s.text, s.label, "sample", s.id)}
-                className="group block w-full rounded-[12px] border border-line bg-surface p-4 text-left transition-all duration-200 hover:-translate-y-[1px] hover:border-plum-200 hover:shadow-[var(--shadow-lift)]"
+                className="group relative block w-full overflow-hidden rounded-[12px] border border-line bg-surface p-4 text-left transition-all duration-300 hover:-translate-y-[2px] hover:border-plum-200 hover:shadow-[var(--shadow-lift)]"
               >
+                <span className="absolute inset-y-0 left-0 w-[3px] origin-top scale-y-0 bg-plum-400 transition-transform duration-300 group-hover:scale-y-100" />
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="text-[11px] font-semibold tracking-[0.12em] text-ink-subtle uppercase">
+                    <div className="text-[10.5px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
                       {s.insurer}
                     </div>
-                    <div className="mt-1 font-display text-[16.5px] leading-snug text-ink">
+                    <div className="mt-1 font-display text-[17px] leading-snug text-ink">
                       {s.label}
                     </div>
                   </div>
@@ -199,7 +331,7 @@ function StartCard() {
                 </p>
                 <span className="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-medium text-plum-500">
                   Read this policy
-                  <svg viewBox="0 0 16 16" className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <svg viewBox="0 0 16 16" className="size-3.5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" />
                   </svg>
                 </span>
@@ -215,10 +347,10 @@ function StartCard() {
               onChange={(e) => setPasted(e.target.value)}
               rows={10}
               placeholder="Paste the text of your policy schedule, certificate of insurance, or entitlement letter…"
-              className="w-full resize-y rounded-[11px] border border-line bg-canvas px-3.5 py-3 font-mono text-[12.5px] leading-relaxed text-ink placeholder:text-ink-subtle/70 focus:border-plum-300 focus:bg-surface focus:outline-none"
+              className="w-full resize-y rounded-[11px] border border-line bg-canvas px-3.5 py-3 font-mono text-[12.5px] leading-relaxed text-ink placeholder:text-ink-subtle/80 focus:border-plum-300 focus:bg-surface focus:outline-none"
             />
             <div className="flex items-center justify-between gap-3">
-              <span className="tnum text-[12px] text-ink-subtle">
+              <span className="figure text-[12px] font-normal text-ink-subtle">
                 {pasted.trim().length.toLocaleString()} characters
               </span>
               <button
@@ -245,7 +377,7 @@ function StartCard() {
               type="button"
               disabled={busy}
               onClick={() => fileRef.current?.click()}
-              className="flex w-full flex-col items-center gap-3 rounded-[12px] border border-dashed border-line-strong bg-canvas px-4 py-9 transition-colors hover:border-plum-300 hover:bg-plum-50/40 disabled:opacity-60"
+              className="flex w-full flex-col items-center gap-3 rounded-[12px] border border-dashed border-line-strong bg-canvas px-4 py-9 transition-colors hover:border-plum-300 hover:bg-plum-50/50 disabled:opacity-60"
             >
               {busy ? (
                 <>
@@ -290,9 +422,10 @@ function StartCard() {
 
         {config?.demo && tab !== "sample" && (
           <div className="mt-3 rounded-[11px] border border-ochre-300/50 bg-ochre-50 p-3 text-[12.5px] leading-relaxed text-ochre-700">
-            Demo Mode is on because no <code className="font-mono">ANTHROPIC_API_KEY</code>{" "}
-            is set. Your own document can be uploaded, but it cannot be parsed
-            until a key is configured — the three samples work either way.
+            Demo Mode is on because no{" "}
+            <code className="font-mono text-[11.5px]">ANTHROPIC_API_KEY</code> is
+            set. Your own document can be uploaded, but it cannot be parsed until
+            a key is configured — the three samples work either way.
           </div>
         )}
       </div>
@@ -300,97 +433,81 @@ function StartCard() {
   );
 }
 
-const STEPS = [
-  {
-    n: "01",
-    title: "Understand the policy",
-    body: "The document is parsed into sum insured, room eligibility, sub-limits, waiting periods, exclusions and network — then explained back to you in plain language, with each statement linked to the clause it came from.",
-  },
-  {
-    n: "02",
-    title: "Find hospitals that fit it",
-    body: "Your cover is cross-referenced against hospitals, room categories and daily rates. Options are ranked with the trade-offs stated out loud: in network but further away, closer but only partly reimbursable.",
-  },
-  {
-    n: "03",
-    title: "Stay oriented through the stay",
-    body: "Admission, investigation, procedure, recovery. At each stage the guidance changes — pre-authorisation windows, room upgrade consequences, what to collect before discharge.",
-  },
-];
-
-function HowItWorks() {
+function Boundaries() {
   return (
-    <section className="border-y border-line/70 bg-surface/60">
-      <div className="mx-auto max-w-[1240px] px-4 py-14 sm:px-6">
-        <div className="grid gap-8 md:grid-cols-3 md:gap-10">
-          {STEPS.map((s) => (
-            <div key={s.n}>
-              <div className="font-display text-[13px] font-semibold tracking-[0.2em] text-plum-300">
-                {s.n}
+    <section className="border-t border-line/70 bg-surface/50">
+      <div className="mx-auto max-w-[1240px] px-4 py-16 sm:px-6 lg:py-20">
+        <div className="grid gap-10 md:grid-cols-[0.8fr_1.2fr] md:gap-14">
+          <Reveal>
+            <h2 className="font-display text-[26px] leading-[1.18] tracking-[-0.02em] text-ink sm:text-[30px]">
+              What this is, and
+              <em className="font-normal text-plum-500 italic"> what it is not.</em>
+            </h2>
+            <p className="mt-3.5 max-w-sm text-[13.5px] leading-[1.72] text-ink-muted">
+              The boundary matters more here than in most software, so it is
+              drawn explicitly rather than left to a footer.
+            </p>
+          </Reveal>
+
+          <div className="grid gap-8 sm:grid-cols-2">
+            <Reveal delay={100}>
+              <div className="mb-3 inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.12em] text-sage-700 uppercase">
+                <span className="size-1.5 rounded-full bg-viz-good" /> It does
               </div>
-              <h3 className="mt-3 font-display text-[19px] leading-snug text-ink">
-                {s.title}
-              </h3>
-              <p className="mt-2.5 text-[13.5px] leading-[1.7] text-ink-muted">
-                {s.body}
-              </p>
-            </div>
-          ))}
+              <ul className="space-y-2.5 text-[13.5px] leading-relaxed text-ink-muted">
+                {[
+                  "Explain what your policy document appears to say",
+                  "Show the exact lines behind every statement",
+                  "Compare hospitals on coverage, cost and distance",
+                  "Warn you about deadlines and caps before they bite",
+                ].map((t) => (
+                  <li key={t} className="flex gap-2.5">
+                    <span className="mt-[7px] size-1 shrink-0 rounded-full bg-line-strong" />
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+            <Reveal delay={180}>
+              <div className="mb-3 inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.12em] text-clay-600 uppercase">
+                <span className="size-1.5 rounded-full bg-viz-bad" /> It does not
+              </div>
+              <ul className="space-y-2.5 text-[13.5px] leading-relaxed text-ink-muted">
+                {[
+                  "Diagnose anything or judge how serious a situation is",
+                  "Recommend a treatment, a procedure or a doctor",
+                  "Approve, reject or guarantee any claim",
+                  "Replace confirming the specifics with your insurer",
+                ].map((t) => (
+                  <li key={t} className="flex gap-2.5">
+                    <span className="mt-[7px] size-1 shrink-0 rounded-full bg-line-strong" />
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-function Boundaries() {
+function Footer() {
   return (
-    <section className="mx-auto max-w-[1240px] px-4 py-14 sm:px-6">
-      <div className="grid gap-8 rounded-[16px] border border-line bg-surface p-6 md:grid-cols-[0.8fr_1.2fr] md:p-8">
-        <div>
-          <h3 className="font-display text-[21px] leading-snug text-ink">
-            What this is, and what it is not
-          </h3>
-          <p className="mt-2.5 text-[13.5px] leading-relaxed text-ink-muted">
-            The boundary matters more here than in most software, so it is drawn
-            explicitly rather than left to a footer.
-          </p>
-        </div>
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div>
-            <div className="mb-2.5 inline-flex items-center gap-2 text-[12px] font-semibold tracking-[0.11em] text-sage-700 uppercase">
-              <span className="size-1.5 rounded-full bg-sage-500" /> It does
-            </div>
-            <ul className="space-y-2 text-[13px] leading-relaxed text-ink-muted">
-              <li>Explain what your policy document appears to say</li>
-              <li>Show you the exact lines behind every statement</li>
-              <li>Compare hospitals on coverage, cost and distance</li>
-              <li>Warn you about deadlines and caps before they bite</li>
-            </ul>
-          </div>
-          <div>
-            <div className="mb-2.5 inline-flex items-center gap-2 text-[12px] font-semibold tracking-[0.11em] text-clay-600 uppercase">
-              <span className="size-1.5 rounded-full bg-clay-500" /> It does not
-            </div>
-            <ul className="space-y-2 text-[13px] leading-relaxed text-ink-muted">
-              <li>Diagnose anything or assess how serious a situation is</li>
-              <li>Recommend a treatment, a procedure or a doctor</li>
-              <li>Approve, reject or guarantee any claim</li>
-              <li>Replace confirming the specifics with your insurer</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <p className="mt-6 text-center text-[12px] text-ink-subtle">
+    <footer className="mx-auto max-w-[1240px] px-4 py-12 sm:px-6">
+      <ArchRule className="mb-8" />
+      <p className="text-center text-[12px] leading-relaxed text-ink-subtle">
         Sample policies, hospitals, rates and people in this prototype are
-        synthetic. No real insurer or facility is depicted.
+        synthetic. No real insurer, facility or person is depicted.
       </p>
-    </section>
+    </footer>
   );
 }
 
 function CheckMark() {
   return (
-    <svg viewBox="0 0 16 16" className="size-3.5 shrink-0 text-sage-500" fill="currentColor" aria-hidden="true">
+    <svg viewBox="0 0 16 16" className="size-3.5 shrink-0 text-viz-good" fill="currentColor" aria-hidden="true">
       <path d="M6.2 11.4 3.3 8.5l1.1-1.1 1.8 1.8 4.4-4.4 1.1 1.1z" />
     </svg>
   );

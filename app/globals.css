@@ -49,6 +49,30 @@
   --color-ochre-600: #a06a37;
   --color-ochre-700: #7c5029;
 
+  /* ------------------------------------------------------------------
+     Data-mark colours.
+
+     Chrome is muted; data is chromatic. Chips, accent rules and text use
+     the sage/ochre/clay steps above. Anything that encodes a value — a
+     meter fill, a split bar, a plotted point — uses these, which are one
+     step deeper and more saturated so the data is the loud thing.
+
+     This trio is validated, not eyeballed. Against the #fffdfb surface on
+     the all-pairs list (the gate a scatter has to clear):
+       worst CVD ΔE 10.3 (deutan, target ≥8) · normal-vision ΔE 20.0
+       (floor ≥15) · all three ≥3:1 contrast. No warnings.
+     Re-run before changing any of them:
+       node scripts/validate_palette.js "#00846c,#b8871c,#9e2b23" \
+         --mode light --surface "#fffdfb" --pairs all
+     ------------------------------------------------------------------ */
+  --color-viz-good: #00846c;
+  --color-viz-warn: #b8871c;
+  --color-viz-bad: #9e2b23;
+  --color-viz-good-wash: #e2f0ec;
+  --color-viz-warn-wash: #f7eeda;
+  --color-viz-bad-wash: #f7e4e1;
+  --color-viz-grid: #ebe4e4;
+
   /* Clay — excluded / out-of-network / negative */
   --color-clay-50: #fcf2f0;
   --color-clay-100: #f7e2de;
@@ -70,7 +94,12 @@
     0 12px 32px -10px rgba(36, 28, 43, 0.14);
   --shadow-sheet: 0 -4px 40px -8px rgba(36, 28, 43, 0.18);
 
+  --shadow-hero: 0 1px 1px rgba(36, 28, 43, 0.03),
+    0 8px 24px -12px rgba(36, 28, 43, 0.1),
+    0 40px 80px -40px rgba(91, 62, 104, 0.22);
+
   --radius-card: 14px;
+  --radius-lg: 20px;
 
   /* Motion */
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
@@ -123,6 +152,27 @@
 @layer utilities {
   .font-display { font-family: var(--font-display); }
 
+  /* Voice vs. data.
+     The serif carries anything the reader has to sit with — headings, prose,
+     the plain-language brief. Every figure wears the sans: numerals need to be
+     unambiguous more than they need to be characterful, and a serif hero
+     number reads as decoration rather than as a fact. */
+  .figure {
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-feature-settings: "ss01" 1;
+  }
+
+  .hero-figure {
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 0.95;
+  }
+
   /* Paper-grain canvas: a barely-there warm texture so large empty
      areas don't read as flat digital grey. */
   .bg-paper {
@@ -134,6 +184,18 @@
   }
 
   .hairline { border: 1px solid var(--color-line); }
+
+  /* A single sheet of warm paper with a barely-there fibre. Large empty areas
+     in a light theme go dead without it; at 2.5% it is felt, not seen. */
+  .grain::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
 
   .card {
     background: var(--color-surface);
@@ -191,9 +253,50 @@
   50%, 100% { opacity: 0; }
 }
 
+/* Scroll-reveal: a short lift, never a slide-in from off-screen. */
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Hand-drawn feel for the hero ornament — the arch draws itself once. */
+@keyframes draw {
+  from { stroke-dashoffset: var(--len, 1200); }
+  to   { stroke-dashoffset: 0; }
+}
+
+@keyframes driftA {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(3%, -2%, 0) scale(1.06); }
+}
+
+@keyframes driftB {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.04); }
+  50%      { transform: translate3d(-4%, 3%, 0) scale(1); }
+}
+
 .animate-rise {
   animation: rise 0.5s var(--ease-out-soft) both;
 }
+
+/* Applied by the Reveal component once the element enters the viewport. */
+.reveal {
+  opacity: 0;
+}
+.reveal.is-in {
+  animation: reveal 0.62s var(--ease-out-soft) both;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
+.animate-draw {
+  stroke-dasharray: var(--len, 1200);
+  animation: draw 1.9s var(--ease-out-soft) both;
+}
+
+/* Two slow, offset washes behind the hero. Blurred past recognition so they
+   read as light in the room rather than as shapes. */
+.drift-a { animation: driftA 22s ease-in-out infinite; }
+.drift-b { animation: driftB 27s ease-in-out infinite; }
 .animate-fade {
   animation: fade 0.4s ease both;
 }

@@ -44,7 +44,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${newsreader.variable} ${inter.variable}`}>
-      <body className="bg-paper min-h-dvh antialiased">
+      <body className="bg-paper grain min-h-dvh antialiased">
         <StoreProvider>
           <CitationProvider>{children}</CitationProvider>
         </StoreProvider>

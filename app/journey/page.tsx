@@ -14,6 +14,8 @@ import {
   StreamingProse,
 } from "@/components/ui";
 import { STAGES, STAGE_META } from "@/lib/services/journeyCopilot";
+import { StageSpine } from "@/components/StageSpine";
+import { Reveal } from "@/components/motion";
 import { getHospital } from "@/lib/data/hospitals";
 import { inr } from "@/lib/services/matchingEngine";
 import { useNdjson, useStore } from "@/lib/store";
@@ -102,12 +104,7 @@ export default function JourneyPage() {
           caption="Guidance changes at every stage of the stay. Each point is read from your own policy, and links to the clause it came from."
         />
 
-        <StageTracker
-          stage={stage}
-          visited={session.visited}
-          onSelect={goTo}
-          idx={idx}
-        />
+        <StageSpine stage={stage} visited={session.visited} onSelect={goTo} />
 
         <div className="mt-7 grid gap-6 lg:grid-cols-[1.45fr_1fr]">
           <div>
@@ -145,7 +142,9 @@ export default function JourneyPage() {
             <div className="stagger mt-4 grid gap-3 sm:grid-cols-2">
               {guidance
                 ? guidance.items.map((item, i) => (
-                    <GuidanceCard key={i} item={item} index={i} />
+                    <Reveal key={i} delay={i * 70}>
+                      <GuidanceCard item={item} index={i} />
+                    </Reveal>
                   ))
                 : [0, 1, 2, 3].map((i) => (
                     <div key={i} className="card space-y-2.5 p-4">
@@ -199,85 +198,6 @@ export default function JourneyPage() {
         </div>
       </div>
     </AppShell>
-  );
-}
-
-function StageTracker({
-  stage,
-  visited,
-  onSelect,
-  idx,
-}: {
-  stage: JourneyStage;
-  visited: JourneyStage[];
-  onSelect: (s: JourneyStage) => void;
-  idx: number;
-}) {
-  // Dot centres sit at 12.5 / 37.5 / 62.5 / 87.5% of the row, so the rail runs
-  // between the first and last of those rather than edge to edge.
-  const RAIL_START = 100 / (STAGES.length * 2);
-  const RAIL_SPAN = 100 - RAIL_START * 2;
-  const progress = (idx / (STAGES.length - 1)) * RAIL_SPAN;
-
-  return (
-    <div className="card mt-1 p-4 sm:p-5">
-      <div className="relative">
-        <div
-          className="absolute top-[12px] hidden h-[2px] rounded-full bg-line sm:block"
-          style={{ left: `${RAIL_START}%`, width: `${RAIL_SPAN}%` }}
-        />
-        <div
-          className="absolute top-[12px] hidden h-[2px] rounded-full bg-plum-400 transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:block"
-          style={{ left: `${RAIL_START}%`, width: `${progress}%` }}
-        />
-        <ol className="relative grid grid-cols-2 gap-y-5 sm:grid-cols-4 sm:gap-y-0">
-          {STAGES.map((s, i) => {
-            const done = i < idx;
-            const active = s === stage;
-            const seen = visited.includes(s);
-            return (
-              <li key={s} className="flex flex-col items-center text-center">
-                <button
-                  type="button"
-                  onClick={() => onSelect(s)}
-                  className="group flex w-full flex-col items-center gap-2 px-1"
-                >
-                  <span
-                    className={`flex size-[26px] items-center justify-center rounded-full border-2 text-[11px] font-semibold transition-all duration-300 ${
-                      active
-                        ? "scale-110 border-plum-500 bg-plum-500 text-white"
-                        : done
-                          ? "border-plum-400 bg-plum-100 text-plum-600"
-                          : seen
-                            ? "border-line-strong bg-surface text-ink-muted"
-                            : "border-line bg-surface text-ink-subtle"
-                    }`}
-                  >
-                    {done ? (
-                      <svg viewBox="0 0 16 16" className="size-3" fill="currentColor">
-                        <path d="M6.2 11.4 3.3 8.5l1.1-1.1 1.8 1.8 4.4-4.4 1.1 1.1z" />
-                      </svg>
-                    ) : (
-                      i + 1
-                    )}
-                  </span>
-                  <span
-                    className={`font-display text-[15px] leading-tight transition-colors ${
-                      active ? "text-ink" : "text-ink-muted group-hover:text-ink"
-                    }`}
-                  >
-                    {STAGE_META[s].label}
-                  </span>
-                  <span className="text-[11.5px] leading-tight text-ink-subtle">
-                    {STAGE_META[s].caption}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ol>
-      </div>
-    </div>
   );
 }
 
@@ -361,16 +281,12 @@ function CaseCard({
         {room && (
           <div className="flex items-center justify-between gap-3">
             <dt className="text-ink-muted">Rate</dt>
-            <dd className="tnum font-medium text-ink">
-              {inr(room.ratePerDay)}/day
-            </dd>
+            <dd className="figure text-ink">{inr(room.ratePerDay)}/day</dd>
           </div>
         )}
         <div className="flex items-center justify-between gap-3">
           <dt className="text-ink-muted">Expected stay</dt>
-          <dd className="tnum font-medium text-ink">
-            {session.ctx.expectedDays} days
-          </dd>
+          <dd className="figure text-ink">{session.ctx.expectedDays} days</dd>
         </div>
       </dl>
 

@@ -57,11 +57,11 @@ export function HospitalCard({
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-ink-muted">
             <span>{h.area}</span>
             <span className="text-line-strong">·</span>
-            <span className="tnum">{match.distanceKm} km away</span>
+            <span className="figure font-normal">{match.distanceKm} km away</span>
             <span className="text-line-strong">·</span>
             <span>{TYPE_LABEL[h.type]}</span>
             <span className="text-line-strong">·</span>
-            <span className="tnum">{h.rating.toFixed(1)}★</span>
+            <span className="figure font-normal">{h.rating.toFixed(1)}★</span>
           </div>
           <div className="mt-2.5 flex flex-wrap gap-1.5">
             {match.inNetwork ? (
@@ -139,42 +139,44 @@ export function HospitalCard({
               <div className="text-[11px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
                 Estimated {estimate.days}-day bill
               </div>
-              <span className="tnum text-[12.5px] text-ink-subtle">
+              <span className="figure text-[12.5px] text-ink-subtle">
                 {inr(total)} total
               </span>
             </div>
 
-            <div className="mt-3 flex h-[26px] overflow-hidden rounded-[7px] bg-surface-sunk">
+            {/* Part-to-whole, two segments, 2px surface gap between them. */}
+            <div className="mt-3 flex h-[22px] overflow-hidden rounded-[6px] bg-surface-sunk">
               <div
-                className="flex items-center justify-start bg-sage-500 pl-2 transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                className="rounded-[5px] bg-viz-good transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
                 style={{ width: `${policyShare}%` }}
-                title="Policy pays"
               />
+              {policyShare < 99.5 && (
+                <span className="w-[2px] shrink-0 bg-surface" />
+              )}
               <div
-                className="flex-1 transition-[width] duration-700"
+                className="flex-1 rounded-[5px] transition-[width] duration-700"
                 style={{
                   backgroundImage:
-                    "repeating-linear-gradient(115deg, var(--color-clay-300) 0 4px, var(--color-clay-100) 4px 9px)",
+                    "repeating-linear-gradient(115deg, var(--color-viz-bad) 0 3px, var(--color-viz-bad-wash) 3px 8px)",
                 }}
-                title="You pay"
               />
             </div>
 
             <div className="mt-2.5 flex items-start justify-between gap-4">
               <div>
                 <div className="flex items-center gap-1.5 text-[11.5px] text-ink-subtle">
-                  <span className="size-2 rounded-[3px] bg-sage-500" /> Policy pays
+                  <span className="size-2 rounded-[3px] bg-viz-good" /> Policy pays
                 </div>
-                <div className="tnum mt-0.5 font-display text-[19px] leading-none text-ink">
+                <div className="figure mt-0.5 text-[19px] leading-none text-ink">
                   {inr(estimate.policyPays)}
                 </div>
               </div>
               <div className="text-right">
                 <div className="flex items-center justify-end gap-1.5 text-[11.5px] text-ink-subtle">
-                  <span className="size-2 rounded-[3px] bg-clay-300" /> You pay
+                  <span className="size-2 rounded-[3px] bg-viz-bad" /> You pay
                 </div>
                 <div
-                  className={`tnum mt-0.5 font-display text-[19px] leading-none ${
+                  className={`figure mt-0.5 text-[19px] leading-none ${
                     estimate.patientPays > 0 ? "text-clay-600" : "text-sage-700"
                   }`}
                 >
@@ -264,7 +266,7 @@ export function HospitalCard({
                       <td className="py-2 pr-3 font-medium text-ink">
                         {f.room.category}
                       </td>
-                      <td className="tnum py-2 pr-3 text-right text-ink-muted">
+                      <td className="figure py-2 pr-3 text-right font-normal text-ink-muted">
                         {inr(f.room.ratePerDay)}
                       </td>
                       <td className="py-2 pr-3">
@@ -284,7 +286,7 @@ export function HospitalCard({
                               : "Not covered"}
                         </span>
                       </td>
-                      <td className="tnum py-2 text-right text-ink-subtle">
+                      <td className="figure py-2 text-right font-normal text-ink-subtle">
                         {f.room.bedsAvailable}
                       </td>
                     </tr>
@@ -303,7 +305,7 @@ export function HospitalCard({
                 >
                   <span className="text-ink-muted">{b.label}</span>
                   <span
-                    className={`tnum font-medium ${
+                    className={`figure ${
                       b.points > 0
                         ? "text-sage-700"
                         : b.points < 0
@@ -318,7 +320,7 @@ export function HospitalCard({
               ))}
               <li className="mt-1 flex items-center justify-between gap-4 border-t border-line pt-1.5 text-[12.5px] font-semibold">
                 <span className="text-ink">Total</span>
-                <span className="tnum text-ink">{match.score}</span>
+                <span className="figure text-ink">{match.score}</span>
               </li>
             </ul>
             <p className="mt-2.5 text-[12px] leading-relaxed text-ink-subtle">
@@ -338,7 +340,7 @@ function Row({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <dt className="text-ink-muted">{label}</dt>
-      <dd className="tnum font-medium text-clay-600">{inr(value)}</dd>
+      <dd className="figure text-clay-600">{inr(value)}</dd>
     </div>
   );
 }

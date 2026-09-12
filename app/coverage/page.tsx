@@ -6,9 +6,12 @@ import { useEffect, useRef } from "react";
 import { AppShell } from "@/components/AppShell";
 import { CitationChip } from "@/components/Citation";
 import { SparkIcon } from "@/components/AppShell";
+import { CountUp, Reveal } from "@/components/motion";
+import { ArchRule } from "@/components/Ornament";
 import {
   ErrorNote,
   Expander,
+  HeroFigure,
   Pill,
   SectionHeading,
   Skeleton,
@@ -84,14 +87,7 @@ function Coverage() {
     <div className="mx-auto max-w-[1240px] px-4 pt-7 pb-10 sm:px-6">
       <PolicyHeader policy={policy} demo={config?.demo ?? false} />
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile
-          tone="plum"
-          label="Sum insured"
-          value={inr(policy.sumInsured.amount)}
-          sub={policy.sumInsured.basis}
-          footer={<CitationChip citation={policy.sumInsured.citation} />}
-        />
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile
           tone={policy.roomEligibility.resolvedDailyCap ? "ochre" : "sage"}
           label="Room limit / day"
@@ -124,6 +120,19 @@ function Coverage() {
           }
         />
         <StatTile
+          tone={policy.coPay ? "ochre" : "sage"}
+          label="Co-payment"
+          value={policy.coPay ? `${policy.coPay.percent}%` : "None"}
+          sub={
+            policy.coPay
+              ? policy.coPay.appliesTo
+              : "No patient share comes off an admissible claim."
+          }
+          footer={
+            policy.coPay ? <CitationChip citation={policy.coPay.citation} /> : undefined
+          }
+        />
+        <StatTile
           tone={policy.reimbursement.outOfNetworkAllowed ? "ochre" : "clay"}
           label="Outside the network"
           value={
@@ -150,14 +159,20 @@ function Coverage() {
         <SummaryPoints points={session.points} loading={running && !session.points.length} />
       </div>
 
-      <RoomSection policy={policy} />
-      <CostSection policy={policy} />
-      <SubLimitSection policy={policy} />
-      <ExclusionSection policy={policy} />
-      <NetworkSection policy={policy} />
-      <GapSection policy={policy} />
+      <Reveal><RoomSection policy={policy} /></Reveal>
+      <Reveal><CostSection policy={policy} /></Reveal>
+      <Reveal><SubLimitSection policy={policy} /></Reveal>
+      <Reveal><ExclusionSection policy={policy} /></Reveal>
+      <Reveal><NetworkSection policy={policy} /></Reveal>
+      <Reveal>
+        <GapSection policy={policy} />
+      </Reveal>
 
-      <NextStep />
+      <ArchRule className="mt-14" />
+
+      <Reveal>
+        <NextStep />
+      </Reveal>
     </div>
   );
 }
@@ -182,6 +197,7 @@ function PolicyHeader({
 
   return (
     <div className="animate-rise card p-5 sm:p-6">
+      <div className="grid gap-7 lg:grid-cols-[1.35fr_auto] lg:items-start lg:gap-10">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="text-[11px] font-semibold tracking-[0.14em] text-plum-400 uppercase">
@@ -219,6 +235,23 @@ function PolicyHeader({
           <Pill tone={policy.confidence === "high" ? "sage" : "ochre"}>
             <span className="capitalize">{policy.confidence}</span> confidence
           </Pill>
+        </div>
+      </div>
+
+        {/* The one number this screen leads with. */}
+        <div className="border-t border-line pt-6 lg:w-[286px] lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10">
+          <HeroFigure
+            label="Sum insured"
+            value={
+              <CountUp
+                value={policy.sumInsured.amount}
+                format={(n) => inr(n)}
+              />
+            }
+            caption={policy.sumInsured.basis}
+          >
+            <CitationChip citation={policy.sumInsured.citation} />
+          </HeroFigure>
         </div>
       </div>
       {demo && (
@@ -335,7 +368,7 @@ function RoomSection({ policy }: { policy: NormalizedPolicy }) {
             {re.eligibleCategory}
           </div>
           {re.resolvedDailyCap != null && (
-            <div className="tnum mt-1 text-[14px] text-ink-muted">
+            <div className="figure mt-1 text-[14px] font-normal text-ink-muted">
               up to {inr(re.resolvedDailyCap)} a day
             </div>
           )}
@@ -403,15 +436,6 @@ function CostSection({ policy }: { policy: NormalizedPolicy }) {
     citation: NormalizedPolicy["sumInsured"]["citation"] | null;
   }[] = [
     {
-      label: "Co-payment",
-      value: policy.coPay ? `${policy.coPay.percent}%` : "None",
-      detail: policy.coPay
-        ? policy.coPay.appliesTo
-        : "No patient share is deducted from an admissible claim.",
-      tone: policy.coPay ? "ochre" : "sage",
-      citation: policy.coPay?.citation ?? null,
-    },
-    {
       label: "Deductible",
       value: policy.deductible ? inr(policy.deductible.amount) : "None",
       detail: policy.deductible
@@ -448,13 +472,13 @@ function CostSection({ policy }: { policy: NormalizedPolicy }) {
         title="What you will bear yourself"
         caption="Deductions and conditions applied before the policy pays anything."
       />
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-3">
         {items.map((it) => (
           <div key={it.label} className="card p-4">
             <div className="text-[11px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
               {it.label}
             </div>
-            <div className="tnum mt-1.5 font-display text-[22px] leading-none text-ink">
+            <div className="figure mt-1.5 text-[22px] leading-none text-ink">
               {it.value}
             </div>
             <p className="mt-2 text-[12.5px] leading-relaxed text-ink-muted">
@@ -490,7 +514,7 @@ function SubLimitSection({ policy }: { policy: NormalizedPolicy }) {
             <div className="min-w-0 flex-1">
               <div className="text-[14px] font-medium text-ink">{s.item}</div>
             </div>
-            <div className="tnum text-[13.5px] font-medium text-ochre-700">
+            <div className="figure text-[13.5px] text-ochre-700">
               {s.limit}
             </div>
             <CitationChip citation={s.citation} />

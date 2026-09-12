@@ -175,27 +175,64 @@ token-per-render loop stutters, and this screen should feel calm.
 
 ## Design
 
-A considered visual identity rather than component-library defaults:
+A considered visual identity rather than component-library defaults.
 
-- **Quiet Plum** — deep aubergine ink and plum primary on a warm grey ground,
-  with sage for covered, ochre for caution and clay for excluded. Semantic
-  colour is consistent across all four screens: sage always means the policy
-  bears it, clay always means you do.
-- **Newsreader** for the voice and **Inter** for the interface, both
-  self-hosted through `next/font`. Anything the reader has to sit with is set
-  in the serif; anything they scan is set in Inter, with tabular figures
-  everywhere money appears.
-- Light-only, deliberately. High even luminance reads better on a phone in a
-  bright hospital corridor than a dim theme does.
-- Fully responsive, phone-first: top nav on desktop becomes a bottom tab bar,
-  the citation drawer becomes a bottom sheet, wide tables scroll inside their
-  own containers, and `prefers-reduced-motion` is respected throughout.
+**Quiet Plum.** Deep aubergine ink and a plum primary on a warm grey ground,
+with one decorative form — the portico from the wordmark — reused as the hero
+watermark, the section dividers and the journey's stage arc. Reusing a single
+shape is what makes a restrained palette read as an identity rather than as a
+theme.
 
-The **cap meter** is the one custom visualisation: room rent against the daily
-limit, with over-cap drawn as a hatched overhang past the limit line rather
-than as a longer bar, so excess reads as excess.
+**Voice and data are different typefaces.** Newsreader carries anything the
+reader has to sit with: headings, the plain-language brief, an italic accent on
+the line that matters. Every *figure* wears Inter, semibold, tabular — numerals
+need to be unambiguous more than characterful, and a serif hero number reads as
+decoration rather than as a fact someone is about to act on.
 
----
+**Chrome is muted; data is chromatic.** Chips, accent rules and text use the
+sage/ochre/clay steps. Anything that encodes a value — a meter fill, a split
+bar, a plotted point — uses the deeper `--color-viz-*` trio, so the data is the
+only loud thing on screen.
+
+Light-only, deliberately: high even luminance reads better on a phone in a
+bright hospital corridor than a dim theme does. Fully responsive and
+phone-first — top nav becomes a bottom tab bar, the citation drawer becomes a
+bottom sheet, the stage arc becomes a vertical spine, wide tables scroll inside
+their own containers. `prefers-reduced-motion` is honoured throughout, and
+every scroll reveal carries a timeout fail-safe so content can never be left
+permanently invisible.
+
+### Data visualization
+
+Two custom visualizations, both chosen by the data's job rather than by taste.
+
+**The cap meter** — room rent against the daily limit. Two stacked segments
+separated by a 2px surface gap rather than a stroke, with the over-cap portion
+hatched as well as red so it survives print and forced-colors. Excess is drawn
+as an overhang past the limit line, so excess reads as excess.
+
+**The trade-off plot** (`components/viz/TradeOffPlot.tsx`) — distance against
+what you pay, which is the brief's "surface the trade-offs" requirement taken
+literally. A ranked list flattens a two-dimensional decision into one number; a
+scatter shows the cheap-and-close corner and what it costs to leave it. It is
+how you discover, at a glance, that a hospital can be in-network *and* cashless
+and still leave ₹1.5 lakh with you, because proportionate deduction applies.
+
+Network status is a **state**, so it wears the reserved status trio, and never
+colour alone: each state also carries its own shape and appears in the legend
+with a label. Three states is also the all-pairs series cap the palette was
+validated against. Hit targets are 15px around 9px marks, tooltips answer to
+keyboard focus as well as hover, and the ranked list below the chart is its
+table view — every plotted value is readable there without hovering anything.
+
+The palette is computed, not eyeballed. Against the `#fffdfb` surface on the
+all-pairs list: worst CVD ΔE **10.3** (deutan; target ≥8), worst normal-vision
+ΔE **20.0** (floor ≥15), all three ≥3:1 contrast, no warnings. Re-run before
+changing any of them:
+
+```bash
+node scripts/validate_palette.js "#00846c,#b8871c,#9e2b23" --mode light --surface "#fffdfb" --pairs all
+```
 
 ## Data
 
