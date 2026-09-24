@@ -68,6 +68,16 @@ const VERIFICATION_COPY: Record<
   },
 };
 
+/**
+ * How a clause is named on screen. Numbered clauses read "Clause 4.2";
+ * named parts of the document ("Policy Schedule", "Certificate") read as
+ * themselves — "Clause Policy Schedule" is not something anyone would say.
+ */
+export function clauseLabel(clause: string): string {
+  const c = clause.trim();
+  return /^\d/.test(c) ? `Clause ${c}` : c;
+}
+
 export function CitationChip({
   citation,
   label,
@@ -104,7 +114,7 @@ export function CitationChip({
       className={`group inline-flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 text-label leading-none font-medium transition-[background-color,border-color,transform] duration-150 active:scale-[0.97] ${ring} ${className}`}
     >
       <Doc className="size-3 shrink-0" />
-      {label ?? `Clause ${citation.clause}`}
+      {label ?? clauseLabel(citation.clause)}
       {v === "exact" ? (
         <span className="sr-only">, {VERIFICATION_COPY.exact.label}</span>
       ) : (
@@ -165,12 +175,12 @@ function SourceDrawer({
   const meta = VERIFICATION_COPY[v];
 
   return (
-    <Sheet open={!!citation} onClose={onClose} label={c ? `Source for clause ${c.clause}` : "Policy source"}>
+    <Sheet open={!!citation} onClose={onClose} label={c ? `Source: ${clauseLabel(c.clause)}` : "Policy source"}>
       <header className="flex items-start justify-between gap-4 border-b border-line px-5 pt-4 pb-4 sm:pt-5">
         <div className="min-w-0">
           <div className="label !text-plum-400">Source document</div>
           <h2 className="mt-1.5 font-display text-2xl leading-tight text-ink">
-            {c ? `Clause ${c.clause}` : ""}
+            {c ? clauseLabel(c.clause) : ""}
           </h2>
           <p className="mt-1 truncate text-sm text-ink-subtle">
             {session.source?.name ?? "Policy document"} · lines {start}–{end}

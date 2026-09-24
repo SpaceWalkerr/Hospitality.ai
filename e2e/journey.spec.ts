@@ -29,7 +29,7 @@ test.describe("Journey", () => {
     const cards = page.getByRole("list", { name: /^Guidance for/ }).getByRole("article");
     await expect(cards).toHaveCount(4);
     for (const card of await cards.all()) {
-      await expect(card.getByRole("button", { name: /Clause/ }).or(card.getByText("General guidance"))).toBeVisible();
+      await expect(card.locator("button[aria-haspopup=dialog]").or(card.getByText("General guidance"))).toBeVisible();
     }
   });
 

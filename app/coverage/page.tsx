@@ -224,7 +224,9 @@ function Verdict({ policy, demo }: { policy: NormalizedPolicy; demo: boolean }) 
               </Pill>
             ))}
             <Pill tone={policy.confidence === "high" ? "sage" : "ochre"}>
-              <span className="capitalize">{policy.confidence}</span> confidence
+              {/* One text node: the pill's flex gap would otherwise add to
+                  the space between two children. */}
+              {`${policy.confidence.charAt(0).toUpperCase()}${policy.confidence.slice(1)} confidence`}
             </Pill>
           </div>
           <div className="label mt-5 !text-plum-400">{policy.insurer}</div>

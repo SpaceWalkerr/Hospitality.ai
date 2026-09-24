@@ -12,6 +12,12 @@ test.describe("Coverage", () => {
     await expect(verdict.getByText("Room limit / day")).toBeVisible();
     await expect(verdict.getByText("₹5,000", { exact: true })).toBeVisible();
     await expect(verdict.getByText("Watch the room rate.")).toBeVisible();
+    // Pill text is one clean phrase, with no doubled space.
+    await expect(verdict.getByText("High confidence", { exact: true })).toBeVisible();
+    // Named document parts aren't prefixed with "Clause"; numbered ones are.
+    await expect(verdict.getByRole("button", { name: /^Policy Schedule/ })).toBeVisible();
+    await expect(verdict.getByRole("button", { name: /^Clause 1\.2/ })).toBeVisible();
+    await expect(page.getByText(/Clause Policy Schedule/)).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
   });
 
@@ -26,7 +32,7 @@ test.describe("Coverage", () => {
     const chip = page.locator("#verdict button[aria-haspopup=dialog]").first();
     await chip.click();
 
-    const sheet = page.getByRole("dialog", { name: /Source for clause/ });
+    const sheet = page.getByRole("dialog", { name: /^Source: / });
     await expect(sheet).toBeVisible();
     await expect(sheet.getByText(/Verified in source|Close match|Not found in source/).first()).toBeVisible();
     await expect(sheet.getByRole("button", { name: "Close source" })).toBeFocused();
