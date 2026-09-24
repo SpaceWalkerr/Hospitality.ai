@@ -1,33 +1,56 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Hospitality — "Quiet Plum" design system
+   Hospitality — "Quiet Plum" design system, v2
    A calm, human visual language for people making decisions
-   under medical stress. Light-only by deliberate choice: high,
-   even luminance reads better on phone screens in bright
-   hospital corridors than a dim theme does.
+   under medical stress.
+
+   Every colour below is a token. Light values live in @theme;
+   the dark theme redefines the same names under
+   :root[data-theme="dark"], so markup never branches on theme.
+   The theme attribute is set before first paint by the inline
+   script in app/layout.tsx (system preference unless the reader
+   has chosen otherwise).
+
+   Semantic roles:
+     canvas / surface / surface-sunk   page, raised, recessed
+     ink / ink-muted / ink-subtle      primary, secondary, tertiary text
+     accent / accent-hover / accent-fg / accent-soft
+                                       the one colour for "do this"
+     sage / ochre / clay               covered / caution / excluded
+     viz-*                             data marks only
    ============================================================ */
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @theme {
   /* Ground & surfaces */
-  --color-canvas: #f6f4f2;
-  --color-canvas-deep: #efebe8;
+  --color-canvas: #f7f4f1;
+  --color-canvas-deep: #efebe7;
   --color-surface: #fffdfb;
-  --color-surface-sunk: #f2eeec;
-  --color-line: #e5dedd;
-  --color-line-strong: #d5cbcd;
+  --color-surface-sunk: #f2eeeb;
+  --color-line: #e6dfdc;
+  --color-line-strong: #d3c9cc;
 
-  /* Ink */
-  --color-ink: #241c2b;
-  --color-ink-muted: #574c60;
-  --color-ink-subtle: #776c7e;
+  /* Ink — ink-subtle clears 4.5:1 on every surface, sunk included */
+  --color-ink: #221a29;
+  --color-ink-muted: #534859;
+  --color-ink-subtle: #6a5f73;
 
-  /* Plum — primary */
+  /* Accent — primary action. One step more saturated than plum-500 so the
+     thing to press is the most chromatic non-data element on screen. */
+  --color-accent: #5a3570;
+  --color-accent-hover: #472a5a;
+  --color-accent-fg: #ffffff;
+  --color-accent-soft: #efe4f4;
+  --color-glow: #e9a86b;
+
+  /* Plum — brand ramp */
   --color-plum-50: #f7f3f8;
   --color-plum-100: #ede4f0;
   --color-plum-200: #dbc9e1;
   --color-plum-300: #b99cc4;
-  --color-plum-400: #856092;
+  --color-plum-400: #7d5a8a;
   --color-plum-500: #5b3e68;
   --color-plum-600: #4a3156;
   --color-plum-700: #382441;
@@ -49,21 +72,24 @@
   --color-ochre-600: #a06a37;
   --color-ochre-700: #7c5029;
 
+  /* Clay — excluded / out-of-network / negative */
+  --color-clay-50: #fcf2f0;
+  --color-clay-100: #f7e2de;
+  --color-clay-300: #dfa79c;
+  --color-clay-500: #b04a3f;
+  --color-clay-600: #8f3a30;
+
   /* ------------------------------------------------------------------
-     Data-mark colours.
+     Data-mark colours. Chrome is muted; data is chromatic.
 
-     Chrome is muted; data is chromatic. Chips, accent rules and text use
-     the sage/ochre/clay steps above. Anything that encodes a value — a
-     meter fill, a split bar, a plotted point — uses these, which are one
-     step deeper and more saturated so the data is the loud thing.
-
-     This trio is validated, not eyeballed. Against the #fffdfb surface on
-     the all-pairs list (the gate a scatter has to clear):
-       worst CVD ΔE 10.3 (deutan, target ≥8) · normal-vision ΔE 20.0
-       (floor ≥15) · all three ≥3:1 contrast. No warnings.
-     Re-run before changing any of them:
+     Validated, not eyeballed. Light, against #fffdfb, all pairs:
+       worst CVD ΔE 10.3 (deutan) · normal-vision ΔE 20.0 · ≥3:1 contrast.
        node scripts/validate_palette.js "#00846c,#b8871c,#9e2b23" \
          --mode light --surface "#fffdfb" --pairs all
+     Dark, against #1e1823, all pairs:
+       worst CVD ΔE 9.7 (deutan) · normal-vision ΔE 16.1 · ≥3:1 contrast.
+       node scripts/validate_palette.js "#18a07e,#bb881a,#c04637" \
+         --mode dark --surface "#1e1823" --pairs all
      ------------------------------------------------------------------ */
   --color-viz-good: #00846c;
   --color-viz-warn: #b8871c;
@@ -73,36 +99,140 @@
   --color-viz-bad-wash: #f7e4e1;
   --color-viz-grid: #ebe4e4;
 
-  /* Clay — excluded / out-of-network / negative */
-  --color-clay-50: #fcf2f0;
-  --color-clay-100: #f7e2de;
-  --color-clay-300: #dfa79c;
-  --color-clay-500: #b04a3f;
-  --color-clay-600: #8f3a30;
-
   /* Type */
-  --font-display: var(--font-newsreader), "Iowan Old Style",
-    "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+  --font-display: var(--font-fraunces), "Iowan Old Style", "Palatino Linotype",
+    Palatino, Georgia, serif;
+  --font-sans: var(--font-instrument), ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
 
+  /* Type scale — ten steps. Nothing on screen is smaller than text-label. */
+  --text-label: 12px;
+  --text-label--line-height: 1.35;
+  --text-xs: 13px;
+  --text-xs--line-height: 1.5;
+  --text-sm: 14px;
+  --text-sm--line-height: 1.55;
+  --text-base: 15px;
+  --text-base--line-height: 1.65;
+  --text-lg: 17.5px;
+  --text-lg--line-height: 1.6;
+  --text-xl: 20px;
+  --text-xl--line-height: 1.35;
+  --text-2xl: 24px;
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 30px;
+  --text-3xl--line-height: 1.15;
+  --text-4xl: 40px;
+  --text-4xl--line-height: 1.08;
+  --text-display: clamp(40px, 6.2vw, 76px);
+  --text-display--line-height: 1.02;
+
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-card: 16px;
+
   /* Elevation — warm, low-contrast, never grey-blue */
-  --shadow-card: 0 1px 2px rgba(36, 28, 43, 0.04),
+  --shadow-xs: 0 1px 2px rgba(36, 28, 43, 0.06);
+  --shadow-sm: 0 1px 2px rgba(36, 28, 43, 0.04),
     0 4px 16px -6px rgba(36, 28, 43, 0.08);
-  --shadow-lift: 0 2px 4px rgba(36, 28, 43, 0.05),
+  --shadow-md: 0 2px 4px rgba(36, 28, 43, 0.05),
     0 12px 32px -10px rgba(36, 28, 43, 0.14);
-  --shadow-sheet: 0 -4px 40px -8px rgba(36, 28, 43, 0.18);
-
-  --shadow-hero: 0 1px 1px rgba(36, 28, 43, 0.03),
+  --shadow-lg: 0 1px 1px rgba(36, 28, 43, 0.03),
     0 8px 24px -12px rgba(36, 28, 43, 0.1),
-    0 40px 80px -40px rgba(91, 62, 104, 0.22);
+    0 40px 80px -40px rgba(91, 62, 104, 0.26);
+  --shadow-glow: 0 10px 30px -10px rgba(90, 53, 112, 0.55),
+    0 0 0 1px rgba(90, 53, 112, 0.04);
 
-  --radius-card: 14px;
-  --radius-lg: 20px;
+  /* Legacy aliases, kept so older markup keeps meaning */
+  --shadow-card: var(--shadow-sm);
+  --shadow-lift: var(--shadow-md);
+  --shadow-hero: var(--shadow-lg);
+  --shadow-sheet: 0 -4px 40px -8px rgba(36, 28, 43, 0.18);
 
   /* Motion */
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 140ms;
+  --duration-base: 220ms;
+  --duration-slow: 420ms;
+}
+
+/* ---------------- Dark theme ----------------
+   Low steps of each ramp become dark tints, high steps become light text,
+   so `bg-plum-50 text-plum-700` means the same thing in both themes. */
+@layer base {
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --color-canvas: #141017;
+    --color-canvas-deep: #0f0c12;
+    --color-surface: #1e1823;
+    --color-surface-sunk: #28212e;
+    --color-line: #382f3f;
+    --color-line-strong: #4b4053;
+
+    --color-ink: #f2edf4;
+    --color-ink-muted: #c6bccc;
+    --color-ink-subtle: #a196a8;
+
+    --color-accent: #cfa9e3;
+    --color-accent-hover: #dfc2ee;
+    --color-accent-fg: #1e1226;
+    --color-accent-soft: #2f2238;
+    --color-glow: #e9a86b;
+
+    --color-plum-50: #221a28;
+    --color-plum-100: #2f2238;
+    --color-plum-200: #45334f;
+    --color-plum-300: #6e5480;
+    --color-plum-400: #b692c8;
+    --color-plum-500: #c9a4dc;
+    --color-plum-600: #d8bce6;
+    --color-plum-700: #e7d4f0;
+    --color-plum-900: #f6eefa;
+
+    --color-sage-50: #16211a;
+    --color-sage-100: #1c2c22;
+    --color-sage-300: #3f6a4c;
+    --color-sage-500: #62b07d;
+    --color-sage-600: #80c697;
+    --color-sage-700: #a2d8b2;
+
+    --color-ochre-50: #251c12;
+    --color-ochre-100: #33271a;
+    --color-ochre-300: #7a5a2f;
+    --color-ochre-500: #d39c5d;
+    --color-ochre-600: #e1b47c;
+    --color-ochre-700: #edca98;
+
+    --color-clay-50: #29171a;
+    --color-clay-100: #381e1e;
+    --color-clay-300: #7d3d38;
+    --color-clay-500: #e27a6d;
+    --color-clay-600: #ee9d92;
+
+    --color-viz-good: #18a07e;
+    --color-viz-warn: #bb881a;
+    --color-viz-bad: #c04637;
+    --color-viz-good-wash: #15302a;
+    --color-viz-warn-wash: #33291a;
+    --color-viz-bad-wash: #3a1e1b;
+    --color-viz-grid: #2e2634;
+
+    /* On dark, shadows vanish; a 1px top highlight does the lifting. */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.035) inset,
+      0 6px 18px -8px rgba(0, 0, 0, 0.6);
+    --shadow-md: 0 1px 0 rgba(255, 255, 255, 0.05) inset,
+      0 16px 36px -12px rgba(0, 0, 0, 0.7);
+    --shadow-lg: 0 1px 0 rgba(255, 255, 255, 0.05) inset,
+      0 40px 80px -30px rgba(0, 0, 0, 0.8);
+    --shadow-glow: 0 10px 30px -10px rgba(207, 169, 227, 0.35);
+    --shadow-sheet: 0 -4px 40px -8px rgba(0, 0, 0, 0.7);
+  }
 }
 
 @layer base {
@@ -114,16 +244,29 @@
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
+    scroll-padding-top: 132px;
   }
 
   body {
     background-color: var(--color-canvas);
     color: var(--color-ink);
     font-family: var(--font-sans);
-    font-feature-settings: "cv05" 1, "ss01" 1;
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+  }
+
+  /* Theme changes cross-fade rather than snap. Scoped to the switch itself
+     (the class is added for one frame by the toggle) so ordinary hovers keep
+     their own timing. */
+  html.theme-transition,
+  html.theme-transition *,
+  html.theme-transition *::before,
+  html.theme-transition *::after {
+    transition: background-color 260ms ease, border-color 260ms ease,
+      color 260ms ease, fill 260ms ease, stroke 260ms ease !important;
   }
 
   ::selection {
@@ -135,34 +278,148 @@
     font-family: var(--font-display);
     font-weight: 500;
     letter-spacing: -0.015em;
+    text-wrap: balance;
+    font-variation-settings: "SOFT" 50;
   }
+
+  p { text-wrap: pretty; }
 
   :focus-visible {
-    outline: 2px solid var(--color-plum-400);
+    outline: 2px solid var(--color-accent);
     outline-offset: 2px;
-    border-radius: 4px;
+    border-radius: 6px;
   }
 
-  /* Tabular figures everywhere money appears */
-  .tnum {
-    font-variant-numeric: tabular-nums;
+  .tnum { font-variant-numeric: tabular-nums; }
+}
+
+@layer components {
+  /* Eyebrow / field label. Uppercase needs tracking to stay legible. */
+  .label {
+    font-size: var(--text-label);
+    line-height: var(--text-label--line-height);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-ink-subtle);
+  }
+
+  .card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .card-quiet {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+  }
+
+  /* The screen's answer. Tinted, lit from one corner, one per view. */
+  .card-verdict {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background: var(--color-surface);
+    border: 1px solid var(--color-plum-200);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+  }
+  .card-verdict::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(120% 90% at 100% 0%, color-mix(in oklab, var(--color-glow) 16%, transparent), transparent 55%),
+      radial-gradient(90% 80% at 0% 100%, color-mix(in oklab, var(--color-plum-300) 18%, transparent), transparent 60%);
+  }
+
+  /* Hover lift for anything pressable that is card-shaped. */
+  .lift {
+    transition: transform var(--duration-base) var(--ease-out-soft),
+      box-shadow var(--duration-base) var(--ease-out-soft),
+      border-color var(--duration-base) var(--ease-out-soft);
+  }
+  @media (hover: hover) {
+    .lift:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--color-plum-200);
+    }
+  }
+  .lift:active { transform: translateY(0) scale(0.995); }
+
+  /* Form controls share one look. */
+  .field {
+    width: 100%;
+    min-height: 44px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-line-strong);
+    background: var(--color-surface);
+    padding: 0.55rem 0.85rem;
+    font-size: var(--text-base);
+    color: var(--color-ink);
+    transition: border-color var(--duration-fast) ease,
+      box-shadow var(--duration-fast) ease;
+  }
+  .field::placeholder { color: var(--color-ink-subtle); }
+  .field:hover { border-color: var(--color-plum-300); }
+  .field:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-accent) 22%, transparent);
+  }
+  .field[aria-invalid="true"] {
+    border-color: var(--color-clay-500);
+  }
+  select.field {
+    appearance: none;
+    padding-right: 2.25rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23887c90' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='M4 6.5 8 10.5 12 6.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 14px;
+  }
+
+  input[type="range"].range {
+    appearance: none;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--color-surface-sunk);
+    accent-color: var(--color-accent);
+  }
+  input[type="range"].range::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    background: var(--color-accent);
+    border: 3px solid var(--color-surface);
+    box-shadow: var(--shadow-xs);
+    cursor: pointer;
+  }
+  input[type="range"].range::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    background: var(--color-accent);
+    border: 3px solid var(--color-surface);
+    cursor: pointer;
   }
 }
 
 @layer utilities {
   .font-display { font-family: var(--font-display); }
 
-  /* Voice vs. data.
-     The serif carries anything the reader has to sit with — headings, prose,
-     the plain-language brief. Every figure wears the sans: numerals need to be
-     unambiguous more than they need to be characterful, and a serif hero
-     number reads as decoration rather than as a fact. */
+  /* Voice vs. data. The serif carries sentences; every figure wears the sans. */
   .figure {
     font-family: var(--font-sans);
     font-variant-numeric: tabular-nums;
     font-weight: 600;
     letter-spacing: -0.02em;
-    font-feature-settings: "ss01" 1;
   }
 
   .hero-figure {
@@ -173,20 +430,18 @@
     line-height: 0.95;
   }
 
-  /* Paper-grain canvas: a barely-there warm texture so large empty
-     areas don't read as flat digital grey. */
+  /* Warm canvas with light in the room. */
   .bg-paper {
     background-color: var(--color-canvas);
     background-image:
-      radial-gradient(at 12% 0%, rgba(91, 62, 104, 0.06) 0px, transparent 55%),
-      radial-gradient(at 88% 4%, rgba(196, 132, 74, 0.05) 0px, transparent 50%);
+      radial-gradient(at 12% 0%, color-mix(in oklab, var(--color-plum-300) 12%, transparent) 0px, transparent 55%),
+      radial-gradient(at 88% 4%, color-mix(in oklab, var(--color-glow) 9%, transparent) 0px, transparent 50%);
     background-attachment: fixed;
   }
 
   .hairline { border: 1px solid var(--color-line); }
 
-  /* A single sheet of warm paper with a barely-there fibre. Large empty areas
-     in a light theme go dead without it; at 2.5% it is felt, not seen. */
+  /* A barely-there fibre so large light areas don't go dead. */
   .grain::before {
     content: "";
     position: fixed;
@@ -196,21 +451,8 @@
     opacity: 0.035;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
   }
+  :root[data-theme="dark"] .grain::before { opacity: 0.05; mix-blend-mode: overlay; }
 
-  .card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow-card);
-  }
-
-  .card-quiet {
-    background: var(--color-surface);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-card);
-  }
-
-  /* Scroll containers for wide content */
   .scroll-x {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -219,6 +461,13 @@
 
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Horizontal scrollers fade at the edges instead of cutting off. */
+  .fade-x {
+    mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 24px), transparent 100%);
+  }
+
+  .text-balance { text-wrap: balance; }
 }
 
 /* ---------- Motion primitives ---------- */
@@ -243,23 +492,16 @@
   50%      { opacity: 1; transform: scale(1.06); }
 }
 
-@keyframes sweep {
-  from { transform: translateX(-100%); }
-  to   { transform: translateX(300%); }
-}
-
 @keyframes caret {
   0%, 45%   { opacity: 1; }
   50%, 100% { opacity: 0; }
 }
 
-/* Scroll-reveal: a short lift, never a slide-in from off-screen. */
 @keyframes reveal {
   from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: none; }
 }
 
-/* Hand-drawn feel for the hero ornament — the arch draws itself once. */
 @keyframes draw {
   from { stroke-dashoffset: var(--len, 1200); }
   to   { stroke-dashoffset: 0; }
@@ -275,14 +517,32 @@
   50%      { transform: translate3d(-4%, 3%, 0) scale(1); }
 }
 
-.animate-rise {
-  animation: rise 0.5s var(--ease-out-soft) both;
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
 }
 
-/* Applied by the Reveal component once the element enters the viewport. */
-.reveal {
-  opacity: 0;
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
 }
+
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes progress-indeterminate {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(250%); }
+}
+
+.animate-rise { animation: rise 0.5s var(--ease-out-soft) both; }
+.animate-page { animation: page-in 0.38s var(--ease-out-soft) both; }
+.animate-toast { animation: toast-in 0.32s var(--ease-out-soft) both; }
+.animate-float { animation: float 6s ease-in-out infinite; }
+
+.reveal { opacity: 0; }
 .reveal.is-in {
   animation: reveal 0.62s var(--ease-out-soft) both;
   animation-delay: var(--reveal-delay, 0ms);
@@ -293,29 +553,21 @@
   animation: draw 1.9s var(--ease-out-soft) both;
 }
 
-/* Two slow, offset washes behind the hero. Blurred past recognition so they
-   read as light in the room rather than as shapes. */
 .drift-a { animation: driftA 22s ease-in-out infinite; }
 .drift-b { animation: driftB 27s ease-in-out infinite; }
-.animate-fade {
-  animation: fade 0.4s ease both;
-}
-.animate-breathe {
-  animation: breathe 2.4s ease-in-out infinite;
-}
+.animate-fade { animation: fade 0.4s ease both; }
+.animate-breathe { animation: breathe 2.4s ease-in-out infinite; }
 
-/* Staggered list reveal — set via inline style --i */
 .stagger > * {
   animation: rise 0.45s var(--ease-out-soft) both;
   animation-delay: calc(var(--stagger-step, 55ms) * var(--i, 0));
 }
 
-/* Skeleton shimmer */
 .skeleton {
   background: linear-gradient(
     90deg,
     var(--color-surface-sunk) 25%,
-    #faf7f5 50%,
+    color-mix(in oklab, var(--color-surface-sunk) 40%, var(--color-surface)) 50%,
     var(--color-surface-sunk) 75%
   );
   background-size: 200% 100%;
@@ -323,7 +575,10 @@
   border-radius: 6px;
 }
 
-/* Streaming text caret */
+.progress-indeterminate {
+  animation: progress-indeterminate 1.4s var(--ease-out-soft) infinite;
+}
+
 .streaming-caret::after {
   content: "";
   display: inline-block;
