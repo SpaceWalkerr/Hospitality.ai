@@ -105,7 +105,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <div className="ml-auto flex items-center gap-2">
             <ModePill demo={config?.demo ?? true} model={config?.model ?? null} />
-            <ThemeToggle className="hidden sm:inline-flex" />
+            <ThemeToggle />
             {session.policy && (
               <button
                 type="button"

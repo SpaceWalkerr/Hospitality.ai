@@ -37,9 +37,7 @@ export function Segmented<T extends string>({
     const i = options.findIndex(([id]) => id === value);
     const next = options[(i + dir + options.length) % options.length][0];
     onChange(next);
-    requestAnimationFrame(() =>
-      ref.current?.querySelector<HTMLElement>(`[data-id="${next}"]`)?.focus(),
-    );
+    ref.current?.querySelector<HTMLElement>(`[data-id="${next}"]`)?.focus();
   };
 
   return (
@@ -73,7 +71,7 @@ export function Segmented<T extends string>({
             tabIndex={on ? 0 : -1}
             onClick={() => onChange(id)}
             className={`flex-1 rounded-full font-medium whitespace-nowrap transition-[background-color,color,box-shadow] duration-200 ${
-              size === "sm" ? "min-h-8 px-3 text-xs" : "min-h-10 px-3.5 text-sm"
+              size === "sm" ? "min-h-8 px-3 text-xs" : "min-h-10 px-2 text-sm sm:px-3.5"
             } ${
               on
                 ? "bg-surface text-ink shadow-[var(--shadow-xs)]"
