@@ -1,0 +1,16 @@
+node_modules
+.next
+out
+.git
+.github
+.claude
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+test-results
+playwright-report
+blob-report
+e2e
+README.md
+DESIGN_PLAN.md
