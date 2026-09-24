@@ -17,6 +17,9 @@ export function SectionNav({
 }) {
   const [active, setActive] = useState(sections[0]?.id);
   const listRef = useRef<HTMLUListElement>(null);
+  // While a nav jump is in flight, scroll-spy stands down so the chosen
+  // chip doesn't flicker through every section the page scrolls past.
+  const jumping = useRef(false);
   const key = sections.map((s) => s.id).join("|");
 
   // Active = the last section whose top has passed under the sticky chrome.
@@ -26,10 +29,13 @@ export function SectionNav({
     // Seven getBoundingClientRect calls per scroll event is cheap enough that
     // throttling buys nothing, and an rAF throttle stalls in background tabs.
     const measure = () => {
+      if (jumping.current) return;
       const chrome = parseFloat(
         getComputedStyle(document.documentElement).getPropertyValue("--chrome-h"),
       ) || 94;
-      const line = chrome + 80;
+      // A section counts as current once its top passes this line: just under the
+      // sticky chrome, or 35% down the viewport, whichever is lower.
+      const line = Math.max(chrome + 80, window.innerHeight * 0.35);
       let current = sections[0]?.id;
       for (const s of sections) {
         const el = document.getElementById(s.id);
@@ -59,6 +65,39 @@ export function SectionNav({
     list.scrollTo({ left, behavior: "smooth" });
   }, [active]);
 
+  /**
+   * Jump to a section. Content above can still be growing (the brief streams
+   * in), which would leave a native anchor jump short of its target, so the
+   * position is re-checked once scrolling settles and corrected if it drifted.
+   */
+  const jump = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    e.preventDefault();
+    history.replaceState(null, "", `#${id}`);
+    setActive(id);
+    jumping.current = true;
+
+    const offset = () =>
+      (parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--chrome-h")) || 94) + 64;
+    const go = (behavior: ScrollBehavior) =>
+      window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - offset(), behavior });
+
+    go("smooth");
+    let settled = 0;
+    const settle = () => {
+      window.removeEventListener("scrollend", settle);
+      clearTimeout(settled);
+      if (Math.abs(el.getBoundingClientRect().top - offset()) > 8) go("instant");
+      el.focus({ preventScroll: true });
+      requestAnimationFrame(() => (jumping.current = false));
+      window.setTimeout(() => (jumping.current = false), 120);
+    };
+    window.addEventListener("scrollend", settle);
+    // Fallback for browsers without scrollend.
+    settled = window.setTimeout(settle, 1200);
+  };
+
   return (
     <nav
       aria-label={label}
@@ -72,6 +111,7 @@ export function SectionNav({
               <a
                 href={`#${s.id}`}
                 data-id={s.id}
+                onClick={(e) => jump(e, s.id)}
                 aria-current={on ? "location" : undefined}
                 className={`inline-flex min-h-9 items-center rounded-full px-3.5 text-sm font-medium whitespace-nowrap transition-colors ${
                   on

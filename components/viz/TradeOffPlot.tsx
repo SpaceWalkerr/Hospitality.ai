@@ -138,7 +138,8 @@ export function TradeOffPlot({
         <svg
           viewBox={`0 0 ${W} ${H}`}
           className="w-full"
-          role="img"
+          role="group"
+          aria-roledescription="scatter plot"
           aria-label={`Distance against what you pay, for ${points.length} hospitals. Lowest cost: ${best.name} at ${inr(best.y)} and ${best.x} kilometres.`}
         >
           {/* Recessive grid: hairline, solid, one step off the surface. */}
