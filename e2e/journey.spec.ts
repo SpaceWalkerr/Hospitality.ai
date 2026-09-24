@@ -1,5 +1,5 @@
-import { expect, test } from "@playwright/test";
-import { expectNoHorizontalOverflow, startWithHospital, startWithSample } from "./helpers";
+import { expect } from "@playwright/test";
+import { expectNoHorizontalOverflow, startWithHospital, startWithSample, test } from "./helpers";
 
 test.describe("Journey", () => {
   test("walks all four stages with policy-grounded guidance", async ({ page }) => {

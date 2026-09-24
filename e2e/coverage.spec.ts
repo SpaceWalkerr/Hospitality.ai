@@ -1,5 +1,5 @@
-import { expect, test } from "@playwright/test";
-import { expectNoHorizontalOverflow, startWithSample } from "./helpers";
+import { expect } from "@playwright/test";
+import { expectNoHorizontalOverflow, startWithSample, test } from "./helpers";
 
 test.describe("Coverage", () => {
   test.beforeEach(async ({ page }) => {

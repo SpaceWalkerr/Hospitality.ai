@@ -200,7 +200,16 @@ export function useNdjson() {
         });
 
         if (!res.ok || !res.body) {
-          throw new Error(`Request failed (${res.status}).`);
+          // Routes and the rate limiter return { error } with a message
+          // written for people; prefer it over a bare status code.
+          let message = `Request failed (${res.status}).`;
+          try {
+            const data = (await res.json()) as { error?: string };
+            if (data?.error) message = data.error;
+          } catch {
+            /* not JSON — keep the status message */
+          }
+          throw new Error(message);
         }
 
         const reader = res.body.getReader();

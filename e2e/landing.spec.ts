@@ -1,5 +1,5 @@
-import { expect, test } from "@playwright/test";
-import { expectNoHorizontalOverflow, PLAN } from "./helpers";
+import { expect } from "@playwright/test";
+import { expectNoHorizontalOverflow, PLAN, test } from "./helpers";
 
 test.describe("Landing", () => {
   test("leads with one primary action, visible without scrolling", async ({ page }) => {

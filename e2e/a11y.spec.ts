@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
-import { startWithHospital } from "./helpers";
+import { expect, type Page } from "@playwright/test";
+import { startWithHospital, test } from "./helpers";
 
 /**
  * Automated WCAG 2.2 AA scan of every screen, in both themes.

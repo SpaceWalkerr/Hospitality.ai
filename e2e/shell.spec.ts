@@ -1,5 +1,5 @@
-import { expect, test } from "@playwright/test";
-import { PLAN, startWithSample } from "./helpers";
+import { expect } from "@playwright/test";
+import { PLAN, startWithSample, test } from "./helpers";
 
 test.describe("App shell", () => {
   test("screens that need a policy send a fresh visitor to the start", async ({ page }) => {

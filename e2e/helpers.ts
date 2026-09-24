@@ -1,4 +1,20 @@
-import { expect, type Page } from "@playwright/test";
+import { test as base, expect, type Page } from "@playwright/test";
+
+/**
+ * Every test gets its own client address. The API is rate limited per client
+ * (middleware.ts), and a parallel suite all arriving from 127.0.0.1 would
+ * share one budget and trip it — which is the limiter working, not a bug.
+ * The rate-limit spec exercises the limits deliberately.
+ */
+export const test = base.extend({
+  extraHTTPHeaders: async ({ extraHTTPHeaders }, use, testInfo) => {
+    const seed = `${testInfo.testId}:${testInfo.repeatEachIndex}:${testInfo.retry}`;
+    let h = 0;
+    for (const c of seed) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+    const ip = `10.${(h >>> 16) & 255}.${(h >>> 8) & 255}.${h & 255}`;
+    await use({ ...extraHTTPHeaders, "x-forwarded-for": ip });
+  },
+});
 
 export const PLAN = /Sampoorna Suraksha/;
 
