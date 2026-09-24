@@ -109,7 +109,7 @@ function Coverage() {
 
       <SectionNav sections={sections} label="Coverage sections" className="mt-6" />
 
-      <section id="summary" className="mt-8 scroll-mt-40">
+      <section id="summary" tabIndex={-1} className="mt-8 focus:outline-none">
         <h2 className="sr-only">Summary</h2>
         <div className="grid gap-5 lg:grid-cols-[1.35fr_1fr]">
           <BriefCard
@@ -394,7 +394,7 @@ function RoomSection({ policy }: { policy: NormalizedPolicy }) {
   const re = policy.roomEligibility;
   const pd = re.proportionateDeduction;
   return (
-    <section id="room" className="mt-16 scroll-mt-40">
+    <section id="room" tabIndex={-1} className="mt-16 focus:outline-none">
       <SectionHeading
         eyebrow="The decision at the desk"
         title="Room eligibility"
@@ -489,7 +489,7 @@ function CostSection({ policy }: { policy: NormalizedPolicy }) {
   ];
 
   return (
-    <section id="costs" className="mt-16 scroll-mt-40">
+    <section id="costs" tabIndex={-1} className="mt-16 focus:outline-none">
       <SectionHeading
         eyebrow="Money"
         title="What you will bear yourself"
@@ -518,7 +518,7 @@ function CostSection({ policy }: { policy: NormalizedPolicy }) {
 function SubLimitSection({ policy }: { policy: NormalizedPolicy }) {
   if (!policy.subLimits.length) return null;
   return (
-    <section id="sublimits" className="mt-16 scroll-mt-40">
+    <section id="sublimits" tabIndex={-1} className="mt-16 focus:outline-none">
       <SectionHeading
         eyebrow="Caps inside the cap"
         title="Sub-limits"
@@ -546,7 +546,7 @@ function ExclusionSection({ policy }: { policy: NormalizedPolicy }) {
   if (!policy.exclusions.length) return null;
 
   return (
-    <section id="exclusions" className="mt-16 scroll-mt-40">
+    <section id="exclusions" tabIndex={-1} className="mt-16 focus:outline-none">
       <SectionHeading
         eyebrow="Not covered"
         title="Exclusions and waiting periods"
@@ -618,7 +618,7 @@ function ExclusionColumn({
 function NetworkSection({ policy }: { policy: NormalizedPolicy }) {
   if (!policy.networkHospitals.length) return null;
   return (
-    <section id="network" className="mt-16 scroll-mt-40">
+    <section id="network" tabIndex={-1} className="mt-16 focus:outline-none">
       <SectionHeading
         eyebrow="Where cashless works"
         title="Network hospitals named in the document"
@@ -653,7 +653,7 @@ function NetworkSection({ policy }: { policy: NormalizedPolicy }) {
 function GapSection({ policy }: { policy: NormalizedPolicy }) {
   if (!policy.gaps.length) return null;
   return (
-    <section id="gaps" className="mt-16 scroll-mt-40">
+    <section id="gaps" tabIndex={-1} className="mt-16 focus:outline-none">
       <div className="rounded-[var(--radius-card)] border border-dashed border-line-strong bg-surface/70 p-5 sm:p-6">
         <h2 className="font-display text-xl text-ink">What this document doesn’t say</h2>
         <p className="mt-1 text-sm text-ink-muted">

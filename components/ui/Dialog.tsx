@@ -31,8 +31,11 @@ function useDialog(open: boolean, onClose: () => void) {
     return () => clearTimeout(t);
   }, [open]);
 
+  // Runs once the panel is actually in the DOM: on first open the dialog
+  // mounts one render after `open` flips, so keying on `open` alone would
+  // look for focus targets that don't exist yet.
   useEffect(() => {
-    if (!open) return;
+    if (!open || !mounted) return;
     const opener = document.activeElement as HTMLElement | null;
     const raf = requestAnimationFrame(() => {
       const first = panel.current?.querySelector<HTMLElement>("[data-autofocus]") ??
@@ -71,7 +74,7 @@ function useDialog(open: boolean, onClose: () => void) {
       document.body.style.overflow = prevOverflow;
       opener?.focus?.({ preventScroll: true });
     };
-  }, [open]);
+  }, [open, mounted]);
 
   return { panel, mounted };
 }

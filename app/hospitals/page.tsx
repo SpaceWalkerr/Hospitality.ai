@@ -77,8 +77,18 @@ export default function HospitalsPage() {
       return;
     }
     if (lastKey.current === ctxKey) return;
-    lastKey.current = ctxKey;
-    match();
+    // First load ranks at once. Later case edits wait for the input to settle:
+    // dragging the stay slider would otherwise send one ranking (and one
+    // model narration) per tick.
+    const first = lastKey.current === "";
+    const t = window.setTimeout(
+      () => {
+        lastKey.current = ctxKey;
+        match();
+      },
+      first ? 0 : 350,
+    );
+    return () => window.clearTimeout(t);
   }, [hydrated, session.policy, ctxKey, router, match]);
 
   const choose = useCallback(

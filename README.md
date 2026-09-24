@@ -37,9 +37,9 @@ cp .env.example .env.local   # add ANTHROPIC_API_KEY for live model calls
 npm run dev
 ```
 
-`npm run typecheck`, `npm run lint` and `npm run build` are all clean.
+Open http://localhost:3000. Node 20.9 or newer.
 
-Open http://localhost:3000.
+`npm run check` runs typecheck, lint and a production build in one go.
 
 ### Demo Mode
 
@@ -61,6 +61,89 @@ as live output, so the "Verified in source" badge means the same thing in both.
 | `ANTHROPIC_API_KEY` | — | Absent ⇒ Demo Mode. Read server-side only; never reaches the browser bundle. |
 | `ANTHROPIC_MODEL` | `claude-opus-5` | Model used by all three AI components. |
 | `ANTHROPIC_EFFORT` | `medium` | Thinking depth for the structured-extraction calls. |
+| `NEXT_PUBLIC_SITE_URL` | — | Public origin for link previews and `robots.txt`. Picked up automatically on Vercel. |
+
+### Tests
+
+```bash
+npx playwright install chromium   # once
+npm run test:e2e                  # builds, starts the production server, runs the suite
+npm run test:e2e:ui               # interactive runner
+```
+
+Playwright tests on a desktop and a phone viewport (91 runs; pure-logic and
+API-level tests run on desktop only): the full flow from
+landing to journey, keyboard and focus behaviour, theme persistence, undo,
+404s, response headers, rate limiting (the limiter's maths against a fake
+clock, and 429s through the real middleware), plus axe WCAG 2.2 AA scans of every screen in light
+and dark. They run against the production standalone server on port 3100 with
+`ANTHROPIC_API_KEY` forced empty, so they are deterministic, cost nothing, and
+never send a document to a model. Set `E2E_SKIP_BUILD=1` to reuse an existing
+build.
+
+CI (`.github/workflows/ci.yml`) runs typecheck, lint, build and the e2e suite
+on every push and pull request, and checks that the Docker image builds.
+
+## Deploying
+
+The app is a standard Next.js server (API routes stream model output, so it
+needs a Node runtime, not static hosting). Set `ANTHROPIC_API_KEY` in the
+host's secret store for live mode; leave it unset for a public Demo Mode.
+
+**Vercel** — import the repo; no configuration needed. Add
+`ANTHROPIC_API_KEY` under Project → Settings → Environment Variables. The
+model routes declare `maxDuration = 120`; check that your plan allows
+functions to run that long, or long policies may be cut off mid-stream.
+
+**Containers** (Fly.io, Render, Railway, Cloud Run, ECS…):
+
+```bash
+docker build -t hospitality .
+docker run -p 3000:3000 -e ANTHROPIC_API_KEY=sk-ant-... hospitality
+```
+
+The image runs the standalone server as a non-root user, listens on `$PORT`
+(default 3000) and has a health check on `/api/config`.
+
+**Any Node host** — `npm ci && npm run build && npm start`. `npm start` runs
+the standalone server and honours `PORT` and `HOSTNAME`.
+
+### Rate limiting
+
+Every `/api/*` request passes through `middleware.ts`, which rejects excess
+traffic with `429`, `Retry-After` and `RateLimit-*` headers before any route or
+model call runs. The UI shows the server's message rather than a status code.
+
+| Route | Per client |
+|---|---|
+| `/api/policy/parse` | 10 per 10 min (full extraction — the most expensive call) |
+| `/api/policy/extract` | 20 per 10 min |
+| `/api/hospitals/match` | 40 per 10 min |
+| `/api/journey/guidance` | 30 per 10 min |
+| `/api/journey/ask` | 20 per 10 min |
+| `/api/config` | 120 per min |
+
+On top of that, the four model routes share a global ceiling
+(`RATE_LIMIT_GLOBAL_PER_HOUR`, default 600 calls an hour across all clients),
+so many clients together can't run a live key up either. Limits live in
+`lib/rateLimit.ts`; the algorithm is a sliding-window counter.
+
+| Variable | Purpose |
+|---|---|
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Shared counters across instances. **Needed on Vercel or any multi-instance host**; without it each instance counts separately. `KV_REST_API_URL`/`_TOKEN` (Vercel's Upstash integration) also work. If Redis is unreachable, counting falls back to memory rather than letting everything through. |
+| `RATE_LIMIT_IP_HEADER` | Header that identifies the client. Default `x-forwarded-for` (right-most entry — the one the nearest proxy wrote). Use `fly-client-ip` on Fly.io, `cf-connecting-ip` behind Cloudflare. Don't expose the server directly to the internet without a proxy that sets this header, or clients can pick their own identity. |
+| `RATE_LIMIT_GLOBAL_PER_HOUR` | Global model-call ceiling (default 600). |
+| `RATE_LIMIT=off` | Disable entirely — local debugging only. |
+
+**Before a real launch**
+
+- `npm audit` reports advisories in `tar`, reached only through `unpdf 0.12`'s
+  optional `canvas` dependency (install-time tooling, not the upload path).
+  The fix is `unpdf` 1.x, a breaking upgrade to PDF extraction — worth doing,
+  with the PDF tests re-run.
+- Security headers are set in `next.config.ts`; a Content-Security-Policy is
+  not, because the inline theme script and Next's bootstrapping need per-request
+  nonces via middleware.
 
 ---
 
@@ -270,6 +353,7 @@ insurer, facility or person is depicted.
 ## Known limits of the prototype
 
 - Fixtures only — no persistence between sessions beyond `sessionStorage`.
+- Rate limits are in memory per instance unless Redis is configured (see Deploying).
 - Scanned PDFs will not read; there is no OCR. The upload path says so.
 - Bed availability, tariffs and empanelment are static rather than live feeds.
 - Distances are straight-line, not drive time.

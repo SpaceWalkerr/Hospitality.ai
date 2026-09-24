@@ -5,6 +5,7 @@ import { StoreProvider } from "@/lib/store";
 import { CitationProvider } from "@/components/Citation";
 import { ToastProvider } from "@/components/ui/Toast";
 import { THEME_BOOT_SCRIPT } from "@/components/ThemeToggle";
+import { SITE_URL } from "@/lib/site";
 
 /**
  * Fraunces carries the voice. Its optical-size axis keeps it warm at hero
@@ -28,10 +29,24 @@ const instrument = Instrument_Sans({
   display: "swap",
 });
 
+const description =
+  "Understand what your health policy actually covers, find hospitals that fit it, and stay oriented through the whole admission.";
+
 export const metadata: Metadata = {
-  title: "Hospitality — insurance-aware hospital navigation",
-  description:
-    "Understand what your health policy actually covers, find hospitals that fit it, and stay oriented through the whole admission.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Hospitality — insurance-aware hospital navigation",
+    template: "%s · Hospitality",
+  },
+  description,
+  applicationName: "Hospitality",
+  openGraph: {
+    type: "website",
+    siteName: "Hospitality",
+    title: "Hospitality — insurance-aware hospital navigation",
+    description,
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {

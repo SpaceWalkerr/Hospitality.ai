@@ -215,7 +215,7 @@ function SourceDrawer({
               >
                 <span
                   className={`tnum w-9 shrink-0 text-right select-none ${
-                    hit ? "text-plum-500" : "text-ink-subtle/70"
+                    hit ? "text-plum-500" : "text-ink-subtle"
                   }`}
                   aria-hidden="true"
                 >
