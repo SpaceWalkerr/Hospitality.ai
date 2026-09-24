@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Alert, Chevron } from "./Icons";
 
-type Tone = "plum" | "sage" | "ochre" | "clay" | "neutral";
+export type Tone = "plum" | "sage" | "ochre" | "clay" | "neutral";
 
 const TONE_CHIP: Record<Tone, string> = {
   plum: "bg-plum-100 text-plum-700 border-plum-200",
@@ -12,6 +13,7 @@ const TONE_CHIP: Record<Tone, string> = {
   neutral: "bg-surface-sunk text-ink-muted border-line",
 };
 
+/** Badge. Status is always carried by the words, never by colour alone. */
 export function Pill({
   tone = "neutral",
   children,
@@ -23,23 +25,44 @@ export function Pill({
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[3px] text-[11.5px] leading-none font-medium whitespace-nowrap ${TONE_CHIP[tone]} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-label leading-none font-medium whitespace-nowrap ${TONE_CHIP[tone]} ${className}`}
     >
       {children}
     </span>
   );
 }
 
-export function Dot({ tone = "neutral" }: { tone?: Tone }) {
-  const color: Record<Tone, string> = {
-    plum: "bg-plum-400",
-    sage: "bg-sage-500",
-    ochre: "bg-ochre-500",
-    clay: "bg-clay-500",
-    neutral: "bg-ink-subtle",
-  };
+export const Badge = Pill;
+
+const DOT: Record<Tone, string> = {
+  plum: "bg-plum-400",
+  sage: "bg-sage-500",
+  ochre: "bg-ochre-500",
+  clay: "bg-clay-500",
+  neutral: "bg-ink-subtle",
+};
+
+export function Dot({ tone = "neutral", className = "" }: { tone?: Tone; className?: string }) {
   return (
-    <span className={`inline-block size-[6px] shrink-0 rounded-full ${color[tone]}`} />
+    <span className={`inline-block size-[7px] shrink-0 rounded-full ${DOT[tone]} ${className}`} />
+  );
+}
+
+export function Eyebrow({
+  children,
+  className = "",
+  tone = "accent",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  tone?: "accent" | "muted";
+}) {
+  return (
+    <div
+      className={`label inline-flex items-center gap-2 ${tone === "accent" ? "!text-plum-400" : ""} ${className}`}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -48,27 +71,28 @@ export function SectionHeading({
   title,
   caption,
   right,
+  id,
+  as: Tag = "h2",
 }: {
   eyebrow?: string;
   title: string;
   caption?: string;
   right?: React.ReactNode;
+  id?: string;
+  as?: "h1" | "h2";
 }) {
   return (
-    <div className="mb-4 flex items-end justify-between gap-4">
+    <div className="mb-5 flex items-end justify-between gap-4">
       <div className="min-w-0">
-        {eyebrow && (
-          <div className="mb-1.5 text-[11px] font-semibold tracking-[0.16em] text-plum-400 uppercase">
-            {eyebrow}
-          </div>
-        )}
-        <h2 className="font-display text-[21px] leading-tight text-ink sm:text-[23px]">
+        {eyebrow && <Eyebrow className="mb-2">{eyebrow}</Eyebrow>}
+        <Tag
+          id={id}
+          className={`font-display text-ink ${Tag === "h1" ? "text-3xl sm:text-4xl" : "text-2xl sm:text-[28px]"}`}
+        >
           {title}
-        </h2>
+        </Tag>
         {caption && (
-          <p className="mt-1 max-w-2xl text-[13.5px] leading-relaxed text-ink-muted">
-            {caption}
-          </p>
+          <p className="mt-1.5 max-w-2xl text-base text-ink-muted">{caption}</p>
         )}
       </div>
       {right && <div className="shrink-0">{right}</div>}
@@ -89,27 +113,17 @@ export function StatTile({
   tone?: Tone;
   footer?: React.ReactNode;
 }) {
-  const accent: Record<Tone, string> = {
-    plum: "before:bg-plum-400",
-    sage: "before:bg-sage-500",
-    ochre: "before:bg-ochre-500",
-    clay: "before:bg-clay-500",
-    neutral: "before:bg-line-strong",
-  };
   return (
-    <div
-      className={`card relative overflow-hidden p-4 before:absolute before:inset-x-0 before:top-0 before:h-[3px] before:content-[''] ${accent[tone]}`}
-    >
-      <div className="text-[11px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
+    <div className="card flex flex-col p-4 sm:p-5">
+      <div className="label flex items-center gap-2">
+        <Dot tone={tone} />
         {label}
       </div>
-      <div className="figure mt-2 text-[25px] leading-none text-ink sm:text-[28px]">
+      <div className="figure mt-2.5 text-2xl leading-none text-ink sm:text-[28px]">
         {value}
       </div>
-      {sub && (
-        <div className="mt-1.5 text-[12.5px] leading-snug text-ink-muted">{sub}</div>
-      )}
-      {footer && <div className="mt-3">{footer}</div>}
+      {sub && <div className="mt-2 text-sm text-ink-muted">{sub}</div>}
+      {footer && <div className="mt-auto pt-3">{footer}</div>}
     </div>
   );
 }
@@ -132,16 +146,12 @@ export function HeroFigure({
 }) {
   return (
     <div>
-      <div className="text-[11px] font-semibold tracking-[0.14em] text-ink-subtle uppercase">
-        {label}
-      </div>
-      <div className="hero-figure mt-2.5 text-[clamp(34px,4.2vw,50px)] text-ink">
+      <div className="label">{label}</div>
+      <div className="hero-figure mt-2.5 text-[clamp(38px,4.6vw,56px)] text-ink">
         {value}
       </div>
       {caption && (
-        <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-ink-muted">
-          {caption}
-        </p>
+        <p className="mt-2 max-w-sm text-sm text-ink-muted">{caption}</p>
       )}
       {children && <div className="mt-4">{children}</div>}
     </div>
@@ -149,10 +159,9 @@ export function HeroFigure({
 }
 
 /**
- * A single ratio against a limit.
- *
- * The unfilled track is a lighter step of the fill's own ramp rather than a
- * neutral grey, so the state reads across the whole bar.
+ * A single ratio against a limit. The unfilled track is a lighter step of the
+ * fill's own ramp rather than a neutral grey, so the state reads across the
+ * whole bar.
  */
 export function Meter({
   value,
@@ -168,11 +177,7 @@ export function Meter({
   rightLabel?: string;
 }) {
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
-  const fill = {
-    good: "bg-viz-good",
-    warn: "bg-viz-warn",
-    bad: "bg-viz-bad",
-  }[tone];
+  const fill = { good: "bg-viz-good", warn: "bg-viz-warn", bad: "bg-viz-bad" }[tone];
   const track = {
     good: "bg-viz-good-wash",
     warn: "bg-viz-warn-wash",
@@ -181,14 +186,21 @@ export function Meter({
 
   return (
     <div>
-      <div className={`h-[10px] w-full overflow-hidden rounded-full ${track}`}>
+      <div
+        className={`h-[10px] w-full overflow-hidden rounded-full ${track}`}
+        role="meter"
+        aria-valuenow={Math.round(value)}
+        aria-valuemin={0}
+        aria-valuemax={Math.round(max)}
+        aria-label={leftLabel}
+      >
         <div
           className={`h-full rounded-full ${fill} transition-[width] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)]`}
           style={{ width: `${pct}%` }}
         />
       </div>
       {(leftLabel || rightLabel) && (
-        <div className="mt-1.5 flex items-center justify-between gap-3 text-[11.5px]">
+        <div className="mt-2 flex items-center justify-between gap-3 text-xs">
           <span className="text-ink-muted">{leftLabel}</span>
           <span className="figure font-medium text-ink-subtle">{rightLabel}</span>
         </div>
@@ -198,7 +210,30 @@ export function Meter({
 }
 
 export function Skeleton({ className = "" }: { className?: string }) {
-  return <div className={`skeleton ${className}`} />;
+  return <div className={`skeleton ${className}`} aria-hidden="true" />;
+}
+
+/** A few lines of placeholder text at natural, uneven widths. */
+export function SkeletonText({ lines = 3, className = "" }: { lines?: number; className?: string }) {
+  const widths = ["100%", "94%", "72%", "88%", "60%"];
+  return (
+    <div className={`space-y-2.5 ${className}`} aria-hidden="true">
+      {Array.from({ length: lines }, (_, i) => (
+        <div key={i} className="skeleton h-3.5" style={{ width: widths[i % widths.length] }} />
+      ))}
+    </div>
+  );
+}
+
+/** A card-shaped placeholder: label, figure, a line of text. */
+export function SkeletonCard({ className = "", tall = false }: { className?: string; tall?: boolean }) {
+  return (
+    <div className={`card space-y-3 p-5 ${className}`} aria-hidden="true">
+      <Skeleton className="h-3 w-1/3" />
+      <Skeleton className={tall ? "h-7 w-3/4" : "h-6 w-2/3"} />
+      <SkeletonText lines={tall ? 3 : 2} />
+    </div>
+  );
 }
 
 /** Progress readout for a multi-step server operation. */
@@ -211,19 +246,23 @@ export function StatusLine({
 }) {
   if (!status) return null;
   return (
-    <div className={`flex items-center gap-2.5 ${className}`}>
+    <div className={`flex items-center gap-2.5 ${className}`} role="status">
       <span className="relative flex size-2">
         <span className="animate-breathe absolute inline-flex size-2 rounded-full bg-plum-400" />
       </span>
-      <span className="text-[13px] font-medium text-ink-muted">{status.label}</span>
-      <span className="figure text-[11.5px] font-normal text-ink-subtle">
+      <span className="text-sm font-medium text-ink-muted">{status.label}</span>
+      <span className="figure text-label font-normal text-ink-subtle">
         {status.step}/{status.of}
       </span>
     </div>
   );
 }
 
-/** Prose that grows as tokens arrive, with a caret while the stream is open. */
+/**
+ * Prose that grows as tokens arrive, with a caret while the stream is open.
+ * aria-live is polite and the region is marked busy while streaming, so a
+ * screen reader reads the finished answer once rather than token by token.
+ */
 export function StreamingProse({
   text,
   streaming,
@@ -235,39 +274,27 @@ export function StreamingProse({
 }) {
   const paragraphs = text.split(/\n{2,}/).filter(Boolean);
   return (
-    <div className={className}>
+    <div className={className} aria-live="polite" aria-busy={streaming}>
       {paragraphs.map((p, i) => (
         <p
           key={i}
-          className={`font-display text-[16.5px] leading-[1.72] text-ink/90 sm:text-[17.5px] ${
-            i > 0 ? "mt-4" : ""
-          } ${streaming && i === paragraphs.length - 1 ? "streaming-caret" : ""}`}
+          className={`font-display text-lg text-ink/90 ${i > 0 ? "mt-4" : ""} ${
+            streaming && i === paragraphs.length - 1 ? "streaming-caret" : ""
+          }`}
         >
           {p}
         </p>
       ))}
-      {!paragraphs.length && streaming && (
-        <div className="space-y-2.5">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-[92%]" />
-          <Skeleton className="h-4 w-[70%]" />
-        </div>
-      )}
+      {!paragraphs.length && streaming && <SkeletonText lines={3} />}
     </div>
   );
 }
 
 export function ErrorNote({ message }: { message: string }) {
   return (
-    <div className="flex items-start gap-3 rounded-[12px] border border-clay-300/60 bg-clay-50 p-3.5">
-      <svg viewBox="0 0 20 20" className="mt-[1px] size-4 shrink-0 text-clay-500" fill="currentColor">
-        <path
-          fillRule="evenodd"
-          d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 4a.9.9 0 01.9.9v4.2a.9.9 0 11-1.8 0V6.9A.9.9 0 0110 6zm0 8.6a1.05 1.05 0 110-2.1 1.05 1.05 0 010 2.1z"
-          clipRule="evenodd"
-        />
-      </svg>
-      <p className="text-[13.5px] leading-relaxed text-clay-600">{message}</p>
+    <div role="alert" className="flex items-start gap-3 rounded-[12px] border border-clay-300/60 bg-clay-50 p-3.5">
+      <Alert className="mt-[2px] size-4 shrink-0 text-clay-500" />
+      <p className="text-sm text-clay-600">{message}</p>
     </div>
   );
 }
@@ -302,23 +329,15 @@ export function Expander({
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-plum-500 transition-colors hover:text-plum-600"
+        className="-mx-2 inline-flex min-h-8 items-center gap-1.5 rounded-full px-2 text-sm font-medium text-accent transition-colors hover:bg-accent-soft"
       >
         {open ? (openLabel ?? label) : label}
-        <svg
-          viewBox="0 0 16 16"
-          className={`size-3.5 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-        >
-          <path d="M4 6.5 8 10.5 12 6.5" />
-        </svg>
+        <Chevron className={`size-3.5 transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
       </button>
       <div
         className="overflow-hidden transition-[height,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
         style={{ height: open ? height : 0, opacity: open ? 1 : 0 }}
+        inert={!open}
       >
         <div ref={ref}>{children}</div>
       </div>

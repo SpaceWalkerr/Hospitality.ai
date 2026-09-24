@@ -41,9 +41,9 @@ export function HospitalCard({
     >
       <div className="flex flex-wrap items-start gap-4 border-b border-line p-4 sm:p-5">
         <span
-          className={`tnum mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold ${
+          className={`tnum mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
             rank === 1
-              ? "bg-plum-500 text-white"
+              ? "bg-accent text-accent-fg"
               : "bg-surface-sunk text-ink-muted"
           }`}
         >
@@ -51,10 +51,10 @@ export function HospitalCard({
         </span>
 
         <div className="min-w-[200px] flex-1">
-          <h3 className="font-display text-[19px] leading-snug text-ink sm:text-[21px]">
+          <h3 className="font-display text-xl leading-snug text-ink sm:text-xl">
             {h.name}
           </h3>
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-ink-muted">
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
             <span>{h.area}</span>
             <span className="text-line-strong">·</span>
             <span className="figure font-normal">{match.distanceKm} km away</span>
@@ -85,9 +85,9 @@ export function HospitalCard({
         <button
           type="button"
           onClick={onChoose}
-          className={`shrink-0 rounded-full px-4 py-2 text-[12.5px] font-medium transition-colors ${
+          className={`shrink-0 rounded-full px-4 py-2 text-xs font-medium transition-colors ${
             chosen
-              ? "bg-plum-500 text-white"
+              ? "bg-accent text-accent-fg"
               : "border border-line text-ink-muted hover:border-plum-200 hover:text-plum-600"
           }`}
         >
@@ -97,7 +97,7 @@ export function HospitalCard({
 
       <div className="grid gap-5 p-4 sm:p-5 lg:grid-cols-[1fr_1fr]">
         <div>
-          <div className="text-[11px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
+          <div className="text-label font-semibold tracking-[0.13em] text-ink-subtle uppercase">
             Best room for your cover
           </div>
           {bestRoom ? (
@@ -108,7 +108,7 @@ export function HospitalCard({
                 label={bestRoom.room.category}
               />
               <p
-                className={`mt-2.5 text-[12.5px] leading-relaxed ${
+                className={`mt-2.5 text-xs leading-relaxed ${
                   bestRoom.status === "covered"
                     ? "text-sage-700"
                     : bestRoom.status === "partial"
@@ -118,7 +118,7 @@ export function HospitalCard({
               >
                 {bestRoom.note}
               </p>
-              <div className="mt-2 text-[12px] text-ink-subtle">
+              <div className="mt-2 text-label text-ink-subtle">
                 {bestRoom.room.bedsAvailable > 0
                   ? `${bestRoom.room.bedsAvailable} beds free right now`
                   : "No beds free in this category"}
@@ -127,7 +127,7 @@ export function HospitalCard({
               </div>
             </div>
           ) : (
-            <p className="mt-3 text-[13px] text-ink-muted">
+            <p className="mt-3 text-sm text-ink-muted">
               No room categories listed for this facility.
             </p>
           )}
@@ -136,10 +136,10 @@ export function HospitalCard({
         {estimate && (
           <div>
             <div className="flex items-baseline justify-between gap-3">
-              <div className="text-[11px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
+              <div className="text-label font-semibold tracking-[0.13em] text-ink-subtle uppercase">
                 Estimated {estimate.days}-day bill
               </div>
-              <span className="figure text-[12.5px] text-ink-subtle">
+              <span className="figure text-xs text-ink-subtle">
                 {inr(total)} total
               </span>
             </div>
@@ -164,19 +164,19 @@ export function HospitalCard({
 
             <div className="mt-2.5 flex items-start justify-between gap-4">
               <div>
-                <div className="flex items-center gap-1.5 text-[11.5px] text-ink-subtle">
+                <div className="flex items-center gap-1.5 text-label text-ink-subtle">
                   <span className="size-2 rounded-[3px] bg-viz-good" /> Policy pays
                 </div>
-                <div className="figure mt-0.5 text-[19px] leading-none text-ink">
+                <div className="figure mt-0.5 text-xl leading-none text-ink">
                   {inr(estimate.policyPays)}
                 </div>
               </div>
               <div className="text-right">
-                <div className="flex items-center justify-end gap-1.5 text-[11.5px] text-ink-subtle">
+                <div className="flex items-center justify-end gap-1.5 text-label text-ink-subtle">
                   <span className="size-2 rounded-[3px] bg-viz-bad" /> You pay
                 </div>
                 <div
-                  className={`figure mt-0.5 text-[19px] leading-none ${
+                  className={`figure mt-0.5 text-xl leading-none ${
                     estimate.patientPays > 0 ? "text-clay-600" : "text-sage-700"
                   }`}
                 >
@@ -187,7 +187,7 @@ export function HospitalCard({
 
             <div className="mt-3">
               <Expander label="What makes up your share" openLabel="Hide the breakdown">
-                <dl className="mt-2.5 space-y-1.5 text-[12.5px]">
+                <dl className="mt-2.5 space-y-1.5 text-xs">
                   <Row
                     label="Room above your limit"
                     value={estimate.overCapRoomAmount}
@@ -212,7 +212,7 @@ export function HospitalCard({
                   />
                   {policy.coPay &&
                     coPayIsConditional(policy.coPay.appliesTo) && (
-                      <div className="pt-1 text-[12px] leading-relaxed text-ink-subtle">
+                      <div className="pt-1 text-label leading-relaxed text-ink-subtle">
                         A {policy.coPay.percent}% co-payment applies to{" "}
                         {policy.coPay.appliesTo.toLowerCase()}. It is left out of
                         this estimate because the document makes it conditional
@@ -220,7 +220,7 @@ export function HospitalCard({
                       </div>
                     )}
                   {estimate.exceedsSumInsured && (
-                    <div className="pt-1 text-[12px] text-clay-600">
+                    <div className="pt-1 text-label text-clay-600">
                       The admissible amount runs past your sum insured — the
                       excess is on you.
                     </div>
@@ -241,7 +241,7 @@ export function HospitalCard({
                   t.kind === "plus" ? "bg-sage-500" : "bg-clay-500"
                 }`}
               />
-              <span className="text-[12.5px] leading-relaxed text-ink-muted">
+              <span className="text-xs leading-relaxed text-ink-muted">
                 {t.text}
               </span>
             </div>
@@ -251,9 +251,9 @@ export function HospitalCard({
         <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
           <Expander label="All room categories" openLabel="Hide rooms">
             <div className="scroll-x mt-3">
-              <table className="w-full min-w-[440px] text-left text-[12.5px]">
+              <table className="w-full min-w-[440px] text-left text-xs">
                 <thead>
-                  <tr className="border-b border-line text-[11px] tracking-[0.1em] text-ink-subtle uppercase">
+                  <tr className="border-b border-line text-label tracking-[0.1em] text-ink-subtle uppercase">
                     <th className="py-1.5 pr-3 font-semibold">Category</th>
                     <th className="py-1.5 pr-3 text-right font-semibold">Rate/day</th>
                     <th className="py-1.5 pr-3 font-semibold">Under your cover</th>
@@ -301,7 +301,7 @@ export function HospitalCard({
               {match.scoreBreakdown.map((b, i) => (
                 <li
                   key={i}
-                  className="flex items-center justify-between gap-4 text-[12.5px]"
+                  className="flex items-center justify-between gap-4 text-xs"
                 >
                   <span className="text-ink-muted">{b.label}</span>
                   <span
@@ -318,12 +318,12 @@ export function HospitalCard({
                   </span>
                 </li>
               ))}
-              <li className="mt-1 flex items-center justify-between gap-4 border-t border-line pt-1.5 text-[12.5px] font-semibold">
+              <li className="mt-1 flex items-center justify-between gap-4 border-t border-line pt-1.5 text-xs font-semibold">
                 <span className="text-ink">Total</span>
                 <span className="figure text-ink">{match.score}</span>
               </li>
             </ul>
-            <p className="mt-2.5 text-[12px] leading-relaxed text-ink-subtle">
+            <p className="mt-2.5 text-label leading-relaxed text-ink-subtle">
               Scoring is a fixed formula over your policy terms, distance and
               hospital data — not a model judgement. It weighs coverage and
               cost, never clinical quality.

@@ -127,10 +127,10 @@ export default function HospitalsPage() {
           <div className="card p-5">
             <div className="mb-1 flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h2 className="font-display text-[19px] leading-tight text-ink">
+                <h2 className="font-display text-xl leading-tight text-ink">
                   The shape of the choice
                 </h2>
-                <p className="mt-1 max-w-md text-[12.5px] leading-relaxed text-ink-muted">
+                <p className="mt-1 max-w-md text-xs leading-relaxed text-ink-muted">
                   How far you travel against what you end up paying — closer
                   and cheaper is the bottom-left. Press any point to jump to it.
                 </p>
@@ -159,7 +159,7 @@ export default function HospitalsPage() {
         <div className="card relative mt-4 overflow-hidden p-5">
           <div className="absolute inset-y-0 left-0 w-[3px] bg-plum-300" />
           <div className="mb-3.5 flex items-center justify-between gap-3">
-            <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-plum-400 uppercase">
+            <div className="inline-flex items-center gap-2 text-label font-semibold tracking-[0.14em] text-plum-400 uppercase">
               <SparkIcon className="size-3.5" />
               Reading the ranking
             </div>
@@ -168,9 +168,9 @@ export default function HospitalsPage() {
           <StreamingProse
             text={session.comparison}
             streaming={running}
-            className="max-w-[68ch] [&_p]:text-[15.5px]"
+            className="max-w-[68ch] [&_p]:text-base"
           />
-          <p className="mt-4 border-t border-line pt-3 text-[12px] leading-relaxed text-ink-subtle">
+          <p className="mt-4 border-t border-line pt-3 text-label leading-relaxed text-ink-subtle">
             Cost and coverage only. This is not a comparison of clinical
             quality, and empanelment changes — confirm with the hospital&rsquo;s
             insurance desk before admission.
@@ -218,7 +218,7 @@ export default function HospitalsPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-[12px] text-ink-subtle">Sort</span>
+            <span className="text-label text-ink-subtle">Sort</span>
             <div className="flex rounded-full border border-line bg-surface p-[3px]">
               {(
                 [
@@ -231,7 +231,7 @@ export default function HospitalsPage() {
                   key={id}
                   type="button"
                   onClick={() => setSort(id)}
-                  className={`rounded-full px-3 py-1 text-[12px] font-medium transition-colors ${
+                  className={`rounded-full px-3 py-1 text-label font-medium transition-colors ${
                     sort === id
                       ? "bg-plum-100 text-plum-700"
                       : "text-ink-subtle hover:text-ink-muted"
@@ -286,7 +286,7 @@ export default function HospitalsPage() {
 
           {!running && !visible.length && (
             <div className="card p-8 text-center">
-              <p className="text-[14px] text-ink-muted">
+              <p className="text-base text-ink-muted">
                 No hospitals match those filters. Try relaxing one.
               </p>
             </div>
@@ -296,7 +296,7 @@ export default function HospitalsPage() {
         {session.chosen && (
           <div className="sticky bottom-20 z-30 mt-8 md:bottom-6">
             <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-3 rounded-full border border-plum-200 bg-surface/95 px-4 py-2.5 shadow-[var(--shadow-lift)] backdrop-blur-md">
-              <span className="text-[13px] text-ink-muted">
+              <span className="text-sm text-ink-muted">
                 Selected{" "}
                 <span className="font-medium text-ink">
                   {
@@ -308,7 +308,7 @@ export default function HospitalsPage() {
               </span>
               <Link
                 href="/journey"
-                className="inline-flex items-center gap-1.5 rounded-full bg-plum-500 px-4 py-1.5 text-[12.5px] font-medium text-white transition-colors hover:bg-plum-600"
+                className="inline-flex items-center gap-1.5 rounded-full bg-plum-500 px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-plum-600"
               >
                 Start the journey
                 <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
@@ -349,7 +349,7 @@ function CaseBar({
               procedureCost: p.fallbackCost,
             });
           }}
-          className="w-full rounded-[9px] border border-line bg-canvas px-3 py-2 text-[13.5px] text-ink focus:border-plum-300 focus:bg-surface focus:outline-none"
+          className="w-full rounded-[9px] border border-line bg-canvas px-3 py-2 text-base text-ink focus:border-plum-300 focus:bg-surface focus:outline-none"
         >
           {CONDITION_PRESETS.map((p) => (
             <option key={p.id} value={p.id}>
@@ -363,7 +363,7 @@ function CaseBar({
         <select
           value={ctx.localityId}
           onChange={(e) => onChange({ ...ctx, localityId: e.target.value })}
-          className="w-full rounded-[9px] border border-line bg-canvas px-3 py-2 text-[13.5px] text-ink focus:border-plum-300 focus:bg-surface focus:outline-none"
+          className="w-full rounded-[9px] border border-line bg-canvas px-3 py-2 text-base text-ink focus:border-plum-300 focus:bg-surface focus:outline-none"
         >
           {LOCALITIES.map((l) => (
             <option key={l.id} value={l.id}>
@@ -385,7 +385,7 @@ function CaseBar({
             }
             className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-surface-sunk accent-plum-500"
           />
-          <span className="figure w-14 shrink-0 text-[13.5px] text-ink">
+          <span className="figure w-14 shrink-0 text-base text-ink">
             {ctx.expectedDays} {ctx.expectedDays === 1 ? "day" : "days"}
           </span>
         </div>
@@ -403,9 +403,9 @@ function CaseBar({
               key={id}
               type="button"
               onClick={() => onChange({ ...ctx, urgency: id })}
-              className={`flex-1 rounded-[7px] px-2 py-1.5 text-[12.5px] font-medium transition-colors ${
+              className={`flex-1 rounded-[7px] px-2 py-1.5 text-xs font-medium transition-colors ${
                 ctx.urgency === id
-                  ? "bg-surface text-ink shadow-[0_1px_2px_rgba(36,28,43,.07)]"
+                  ? "bg-surface text-ink shadow-[var(--shadow-xs)]"
                   : "text-ink-subtle hover:text-ink-muted"
               }`}
             >
@@ -427,7 +427,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-[11px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
+      <span className="mb-1.5 block text-label font-semibold tracking-[0.13em] text-ink-subtle uppercase">
         {label}
       </span>
       {children}
@@ -454,7 +454,7 @@ function CoverageContext({
 
   return (
     <div className="card flex h-full flex-col p-5">
-      <div className="text-[11px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
+      <div className="text-label font-semibold tracking-[0.13em] text-ink-subtle uppercase">
         Your constraints
       </div>
       <dl className="mt-3.5 space-y-3">
@@ -496,7 +496,7 @@ function CoverageContext({
       {cheapest?.estimate && (
         <div className="mt-5 border-t border-line pt-4">
           <div className="mb-2 flex items-baseline justify-between gap-3">
-            <span className="text-[11px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
+            <span className="text-label font-semibold tracking-[0.13em] text-ink-subtle uppercase">
               Best case against your cover
             </span>
           </div>
@@ -511,7 +511,7 @@ function CoverageContext({
             leftLabel={`${inr(cheapest.estimate.policyPays)} of your cover used`}
             rightLabel={inr(policy.sumInsured.amount)}
           />
-          <p className="mt-2.5 text-[12px] leading-relaxed text-ink-subtle">
+          <p className="mt-2.5 text-label leading-relaxed text-ink-subtle">
             At {cheapest.hospital.name}, the option that leaves least with you.
             Whatever the policy bears here comes off the same annual pot.
           </p>
@@ -541,12 +541,12 @@ function Line({
 }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <dt className="text-[13px] text-ink-muted">{term}</dt>
+      <dt className="text-sm text-ink-muted">{term}</dt>
       <dd>
         {tone ? (
           <Pill tone={tone}>{detail}</Pill>
         ) : (
-          <span className="figure text-[13px] text-ink">{detail}</span>
+          <span className="figure text-sm text-ink">{detail}</span>
         )}
       </dd>
     </div>
@@ -556,10 +556,10 @@ function Line({
 function Mini({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[10.5px] font-semibold tracking-[0.1em] text-ink-subtle uppercase">
+      <div className="text-label font-semibold tracking-[0.1em] text-ink-subtle uppercase">
         {label}
       </div>
-      <div className="figure mt-1 text-[16px] leading-none text-ink">
+      <div className="figure mt-1 text-base leading-none text-ink">
         {value}
       </div>
     </div>
@@ -579,7 +579,7 @@ function FilterChip({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full border px-3 py-1.5 text-[12.5px] font-medium transition-colors ${
+      className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
         active
           ? "border-plum-300 bg-plum-100 text-plum-700"
           : "border-line bg-surface text-ink-muted hover:border-line-strong hover:text-ink"

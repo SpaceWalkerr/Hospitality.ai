@@ -41,19 +41,19 @@ function Hero() {
 
       <div className="relative mx-auto grid max-w-[1240px] items-start gap-12 px-4 pt-12 pb-20 sm:px-6 lg:grid-cols-[1.06fr_0.94fr] lg:gap-16 lg:pt-20 lg:pb-28">
         <div className="animate-rise relative">
-          <span className="inline-flex items-center gap-2 rounded-full border border-plum-200 bg-surface/70 px-3 py-1 text-[11px] font-semibold tracking-[0.13em] text-plum-600 uppercase backdrop-blur-sm">
+          <span className="inline-flex items-center gap-2 rounded-full border border-plum-200 bg-surface/70 px-3 py-1 text-label font-semibold tracking-[0.13em] text-plum-600 uppercase backdrop-blur-sm">
             <span className="size-1.5 rounded-full bg-plum-400" />
             Insurance-aware care navigation
           </span>
 
-          <h1 className="mt-6 font-display text-[42px] leading-[1.02] tracking-[-0.03em] text-ink sm:text-[58px] lg:text-[68px]">
+          <h1 className="mt-6 font-display text-display leading-[1.02] tracking-[-0.03em] text-ink sm:text-display lg:text-display">
             Nobody should have
             <br className="hidden sm:block" /> to decode a policy
             <br className="hidden sm:block" /> document{" "}
             <em className="font-normal text-plum-500 italic">at 3am.</em>
           </h1>
 
-          <p className="mt-7 max-w-xl text-[16.5px] leading-[1.72] text-ink-muted sm:text-[17.5px]">
+          <p className="mt-7 max-w-xl text-lg leading-[1.72] text-ink-muted sm:text-lg">
             When someone is being admitted, the questions come fast and the
             answers are buried in forty pages of clauses. Hospitality reads your
             cover, answers them in plain language, and shows you the exact line
@@ -69,7 +69,7 @@ function Hero() {
               <Reveal
                 key={t}
                 delay={220 + i * 90}
-                className="inline-flex items-center gap-2 text-[13px] text-ink-muted"
+                className="inline-flex items-center gap-2 text-sm text-ink-muted"
               >
                 <CheckMark /> {t}
               </Reveal>
@@ -111,7 +111,7 @@ function Questions() {
     <section className="border-t border-line/70 bg-surface/50">
       <div className="mx-auto max-w-[1240px] px-4 py-16 sm:px-6 lg:py-24">
         <Reveal className="max-w-2xl">
-          <h2 className="font-display text-[30px] leading-[1.15] tracking-[-0.02em] text-ink sm:text-[38px]">
+          <h2 className="font-display text-3xl leading-[1.15] tracking-[-0.02em] text-ink sm:text-4xl">
             Three questions nobody can answer
             <em className="font-normal text-plum-500 italic"> in a corridor.</em>
           </h2>
@@ -122,16 +122,16 @@ function Questions() {
         <div className="grid gap-10 md:grid-cols-3 md:gap-8">
           {QUESTIONS.map((item, i) => (
             <Reveal key={item.n} delay={i * 120}>
-              <div className="figure text-[12px] tracking-[0.2em] text-plum-300">
+              <div className="figure text-label tracking-[0.2em] text-plum-300">
                 {item.n}
               </div>
-              <h3 className="mt-3.5 font-display text-[21px] leading-snug text-ink">
+              <h3 className="mt-3.5 font-display text-xl leading-snug text-ink">
                 {item.q}
               </h3>
-              <p className="mt-3 text-[14px] leading-[1.72] text-ink-muted">
+              <p className="mt-3 text-base leading-[1.72] text-ink-muted">
                 {item.a}
               </p>
-              <div className="mt-4 inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.11em] text-plum-400 uppercase">
+              <div className="mt-4 inline-flex items-center gap-1.5 text-label font-semibold tracking-[0.11em] text-plum-400 uppercase">
                 <span className="h-px w-5 bg-plum-300" />
                 {item.to}
               </div>
@@ -148,15 +148,15 @@ function Showcase() {
     <section className="mx-auto max-w-[1240px] px-4 py-16 sm:px-6 lg:py-24">
       <div className="grid items-center gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
         <Reveal>
-          <div className="text-[11px] font-semibold tracking-[0.16em] text-plum-400 uppercase">
+          <div className="text-label font-semibold tracking-[0.16em] text-plum-400 uppercase">
             The clause that catches people
           </div>
-          <h2 className="mt-3 font-display text-[28px] leading-[1.16] tracking-[-0.02em] text-ink sm:text-[34px]">
+          <h2 className="mt-3 font-display text-3xl leading-[1.16] tracking-[-0.02em] text-ink sm:text-4xl">
             A nicer room can cost you
             <em className="font-normal text-plum-500 italic"> four times</em> the
             room difference.
           </h2>
-          <p className="mt-4 max-w-lg text-[14.5px] leading-[1.75] text-ink-muted">
+          <p className="mt-4 max-w-lg text-base leading-[1.75] text-ink-muted">
             Most retail policies in India cap room rent at 1% of the sum insured
             and then apply <strong className="font-semibold text-ink">proportionate
             deduction</strong>: exceed the cap and the insurer pays a reduced
@@ -164,7 +164,7 @@ function Showcase() {
             theatre, nursing — in the same ratio. On a ₹2.5 lakh bill that is
             usually far more than the room itself.
           </p>
-          <p className="mt-3.5 max-w-lg text-[13.5px] leading-relaxed text-ink-subtle">
+          <p className="mt-3.5 max-w-lg text-base leading-relaxed text-ink-subtle">
             It is one sentence, on page nine, in a document nobody reads at
             admission. So we put it on the first screen instead.
           </p>
@@ -173,7 +173,7 @@ function Showcase() {
         <Reveal delay={140}>
           <div className="card overflow-hidden shadow-[var(--shadow-lift)]">
             <div className="flex items-center justify-between gap-3 border-b border-line bg-canvas px-4 py-3">
-              <span className="text-[11px] font-semibold tracking-[0.14em] text-ink-subtle uppercase">
+              <span className="text-label font-semibold tracking-[0.14em] text-ink-subtle uppercase">
                 Single Private · Kaveri Institute
               </span>
               <Pill tone="clay">Over limit</Pill>
@@ -182,29 +182,29 @@ function Showcase() {
               <CapMeter rate={11500} cap={5000} label="Room rent" />
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-[11px] border border-line bg-canvas p-3.5">
-                  <div className="text-[11px] font-semibold tracking-[0.12em] text-ink-subtle uppercase">
+                  <div className="text-label font-semibold tracking-[0.12em] text-ink-subtle uppercase">
                     Room difference
                   </div>
-                  <div className="figure mt-1.5 text-[22px] leading-none text-ink">
+                  <div className="figure mt-1.5 text-2xl leading-none text-ink">
                     ₹26,000
                   </div>
-                  <div className="mt-1 text-[11.5px] text-ink-subtle">
+                  <div className="mt-1 text-label text-ink-subtle">
                     4 days over the cap
                   </div>
                 </div>
                 <div className="rounded-[11px] border border-clay-300/50 bg-clay-50 p-3.5">
-                  <div className="text-[11px] font-semibold tracking-[0.12em] text-clay-600 uppercase">
+                  <div className="text-label font-semibold tracking-[0.12em] text-clay-600 uppercase">
                     Also deducted
                   </div>
-                  <div className="figure mt-1.5 text-[22px] leading-none text-clay-600">
+                  <div className="figure mt-1.5 text-2xl leading-none text-clay-600">
                     ₹1,39,650
                   </div>
-                  <div className="mt-1 text-[11.5px] text-clay-600/80">
+                  <div className="mt-1 text-label text-clay-600/80">
                     57% of every associated charge
                   </div>
                 </div>
               </div>
-              <p className="text-[12.5px] leading-relaxed text-ink-subtle">
+              <p className="text-xs leading-relaxed text-ink-subtle">
                 Illustrative, on the bundled Meridian sample policy. Your own
                 numbers come from your own document.
               </p>
@@ -269,10 +269,10 @@ function StartCard() {
       style={{ animationDelay: "120ms" }}
     >
       <div className="border-b border-line px-5 pt-5 pb-4">
-        <h2 className="font-display text-[22px] leading-tight text-ink">
+        <h2 className="font-display text-2xl leading-tight text-ink">
           Start with your policy
         </h2>
-        <p className="mt-1.5 text-[13.5px] leading-relaxed text-ink-muted">
+        <p className="mt-1.5 text-base leading-relaxed text-ink-muted">
           Read on the server, never stored. Nothing you add here leaves this app.
         </p>
       </div>
@@ -292,9 +292,9 @@ function StartCard() {
               setTab(id);
               setError(null);
             }}
-            className={`flex-1 rounded-[9px] px-3 py-2 text-[13px] font-medium transition-all duration-200 ${
+            className={`flex-1 rounded-[9px] px-3 py-2 text-sm font-medium transition-all duration-200 ${
               tab === id
-                ? "bg-surface text-ink shadow-[0_1px_2px_rgba(36,28,43,.07)]"
+                ? "bg-surface text-ink shadow-[var(--shadow-xs)]"
                 : "text-ink-subtle hover:text-ink-muted"
             }`}
           >
@@ -317,19 +317,19 @@ function StartCard() {
                 <span className="absolute inset-y-0 left-0 w-[3px] origin-top scale-y-0 bg-plum-400 transition-transform duration-300 group-hover:scale-y-100" />
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="text-[10.5px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
+                    <div className="text-label font-semibold tracking-[0.13em] text-ink-subtle uppercase">
                       {s.insurer}
                     </div>
-                    <div className="mt-1 font-display text-[17px] leading-snug text-ink">
+                    <div className="mt-1 font-display text-lg leading-snug text-ink">
                       {s.label}
                     </div>
                   </div>
                   <Pill tone={s.accent}>{s.tag}</Pill>
                 </div>
-                <p className="mt-2 text-[13px] leading-relaxed text-ink-muted">
+                <p className="mt-2 text-sm leading-relaxed text-ink-muted">
                   {s.blurb}
                 </p>
-                <span className="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-medium text-plum-500">
+                <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-plum-500">
                   Read this policy
                   <svg viewBox="0 0 16 16" className="size-3.5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" />
@@ -347,23 +347,23 @@ function StartCard() {
               onChange={(e) => setPasted(e.target.value)}
               rows={10}
               placeholder="Paste the text of your policy schedule, certificate of insurance, or entitlement letter…"
-              className="w-full resize-y rounded-[11px] border border-line bg-canvas px-3.5 py-3 font-mono text-[12.5px] leading-relaxed text-ink placeholder:text-ink-subtle/80 focus:border-plum-300 focus:bg-surface focus:outline-none"
+              className="w-full resize-y rounded-[11px] border border-line bg-canvas px-3.5 py-3 font-mono text-xs leading-relaxed text-ink placeholder:text-ink-subtle/80 focus:border-plum-300 focus:bg-surface focus:outline-none"
             />
             <div className="flex items-center justify-between gap-3">
-              <span className="figure text-[12px] font-normal text-ink-subtle">
+              <span className="figure text-label font-normal text-ink-subtle">
                 {pasted.trim().length.toLocaleString()} characters
               </span>
               <button
                 type="button"
                 disabled={pasted.trim().length < 200}
                 onClick={() => begin(pasted, "Pasted policy text", "paste")}
-                className="rounded-full bg-plum-500 px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-plum-600 disabled:cursor-not-allowed disabled:bg-line-strong"
+                className="rounded-full bg-plum-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-plum-600 disabled:cursor-not-allowed disabled:bg-line-strong"
               >
                 Read this policy
               </button>
             </div>
             {pasted.trim().length > 0 && pasted.trim().length < 200 && (
-              <p className="text-[12px] text-ink-subtle">
+              <p className="text-label text-ink-subtle">
                 Paste at least a couple of hundred characters so there is
                 something to read.
               </p>
@@ -382,7 +382,7 @@ function StartCard() {
               {busy ? (
                 <>
                   <span className="animate-breathe size-6 rounded-full bg-plum-300" />
-                  <span className="text-[13.5px] font-medium text-ink-muted">
+                  <span className="text-base font-medium text-ink-muted">
                     Reading the file…
                   </span>
                 </>
@@ -392,10 +392,10 @@ function StartCard() {
                     <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5" />
                     <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
                   </svg>
-                  <span className="text-[14px] font-medium text-ink">
+                  <span className="text-base font-medium text-ink">
                     Choose a PDF
                   </span>
-                  <span className="text-[12.5px] text-ink-subtle">
+                  <span className="text-xs text-ink-subtle">
                     Text-based PDFs up to 12 MB. Scans will not read.
                   </span>
                 </>
@@ -421,9 +421,9 @@ function StartCard() {
         )}
 
         {config?.demo && tab !== "sample" && (
-          <div className="mt-3 rounded-[11px] border border-ochre-300/50 bg-ochre-50 p-3 text-[12.5px] leading-relaxed text-ochre-700">
+          <div className="mt-3 rounded-[11px] border border-ochre-300/50 bg-ochre-50 p-3 text-xs leading-relaxed text-ochre-700">
             Demo Mode is on because no{" "}
-            <code className="font-mono text-[11.5px]">ANTHROPIC_API_KEY</code> is
+            <code className="font-mono text-label">ANTHROPIC_API_KEY</code> is
             set. Your own document can be uploaded, but it cannot be parsed until
             a key is configured — the three samples work either way.
           </div>
@@ -439,11 +439,11 @@ function Boundaries() {
       <div className="mx-auto max-w-[1240px] px-4 py-16 sm:px-6 lg:py-20">
         <div className="grid gap-10 md:grid-cols-[0.8fr_1.2fr] md:gap-14">
           <Reveal>
-            <h2 className="font-display text-[26px] leading-[1.18] tracking-[-0.02em] text-ink sm:text-[30px]">
+            <h2 className="font-display text-3xl leading-[1.18] tracking-[-0.02em] text-ink sm:text-3xl">
               What this is, and
               <em className="font-normal text-plum-500 italic"> what it is not.</em>
             </h2>
-            <p className="mt-3.5 max-w-sm text-[13.5px] leading-[1.72] text-ink-muted">
+            <p className="mt-3.5 max-w-sm text-base leading-[1.72] text-ink-muted">
               The boundary matters more here than in most software, so it is
               drawn explicitly rather than left to a footer.
             </p>
@@ -451,10 +451,10 @@ function Boundaries() {
 
           <div className="grid gap-8 sm:grid-cols-2">
             <Reveal delay={100}>
-              <div className="mb-3 inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.12em] text-sage-700 uppercase">
+              <div className="mb-3 inline-flex items-center gap-2 text-label font-semibold tracking-[0.12em] text-sage-700 uppercase">
                 <span className="size-1.5 rounded-full bg-viz-good" /> It does
               </div>
-              <ul className="space-y-2.5 text-[13.5px] leading-relaxed text-ink-muted">
+              <ul className="space-y-2.5 text-base leading-relaxed text-ink-muted">
                 {[
                   "Explain what your policy document appears to say",
                   "Show the exact lines behind every statement",
@@ -469,10 +469,10 @@ function Boundaries() {
               </ul>
             </Reveal>
             <Reveal delay={180}>
-              <div className="mb-3 inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.12em] text-clay-600 uppercase">
+              <div className="mb-3 inline-flex items-center gap-2 text-label font-semibold tracking-[0.12em] text-clay-600 uppercase">
                 <span className="size-1.5 rounded-full bg-viz-bad" /> It does not
               </div>
-              <ul className="space-y-2.5 text-[13.5px] leading-relaxed text-ink-muted">
+              <ul className="space-y-2.5 text-base leading-relaxed text-ink-muted">
                 {[
                   "Diagnose anything or judge how serious a situation is",
                   "Recommend a treatment, a procedure or a doctor",
@@ -497,7 +497,7 @@ function Footer() {
   return (
     <footer className="mx-auto max-w-[1240px] px-4 py-12 sm:px-6">
       <ArchRule className="mb-8" />
-      <p className="text-center text-[12px] leading-relaxed text-ink-subtle">
+      <p className="text-center text-label leading-relaxed text-ink-subtle">
         Sample policies, hospitals, rates and people in this prototype are
         synthetic. No real insurer, facility or person is depicted.
       </p>

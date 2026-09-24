@@ -32,8 +32,8 @@ export function CapMeter({
     <div className={compact ? "" : "space-y-2"}>
       {label && (
         <div className="flex items-baseline justify-between gap-3">
-          <span className="text-[12.5px] font-medium text-ink-muted">{label}</span>
-          <span className="figure text-[12.5px] text-ink">
+          <span className="text-xs font-medium text-ink-muted">{label}</span>
+          <span className="figure text-xs text-ink">
             {inr(rate)}
             <span className="font-normal text-ink-subtle">/day</span>
           </span>
@@ -72,7 +72,7 @@ export function CapMeter({
         )}
       </div>
       {!compact && (
-        <div className="flex items-center justify-between gap-3 text-[11.5px]">
+        <div className="flex items-center justify-between gap-3 text-label">
           <span className={over ? "font-medium text-clay-600" : "text-sage-700"}>
             {cap == null
               ? "No cap stated"

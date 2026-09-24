@@ -73,7 +73,7 @@ function Coverage() {
         <ErrorNote message={error} />
         <Link
           href="/"
-          className="mt-5 inline-flex rounded-full border border-line px-4 py-2 text-[13px] font-medium text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
+          className="mt-5 inline-flex rounded-full border border-line px-4 py-2 text-sm font-medium text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
         >
           Choose a different policy
         </Link>
@@ -200,13 +200,13 @@ function PolicyHeader({
       <div className="grid gap-7 lg:grid-cols-[1.35fr_auto] lg:items-start lg:gap-10">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <div className="text-[11px] font-semibold tracking-[0.14em] text-plum-400 uppercase">
+          <div className="text-label font-semibold tracking-[0.14em] text-plum-400 uppercase">
             {policy.insurer}
           </div>
-          <h1 className="mt-1.5 font-display text-[26px] leading-tight text-ink sm:text-[31px]">
+          <h1 className="mt-1.5 font-display text-3xl leading-tight text-ink sm:text-3xl">
             {policy.planName}
           </h1>
-          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[12.5px] text-ink-muted">
+          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-ink-muted">
             {policy.policyHolder && (
               <span>
                 <span className="text-ink-subtle">Holder</span> {policy.policyHolder}
@@ -255,7 +255,7 @@ function PolicyHeader({
         </div>
       </div>
       {demo && (
-        <p className="mt-4 border-t border-line pt-3.5 text-[12.5px] leading-relaxed text-ink-subtle">
+        <p className="mt-4 border-t border-line pt-3.5 text-xs leading-relaxed text-ink-subtle">
           Demo Mode: this extraction is a stored fixture rather than a live
           model call. Its citations are verified against the source document by
           the same routine used on live output.
@@ -280,14 +280,14 @@ function BriefCard({
     <div className="card relative overflow-hidden p-5 sm:p-6">
       <div className="absolute inset-y-0 left-0 w-[3px] bg-plum-300" />
       <div className="mb-4 flex items-center justify-between gap-3">
-        <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-plum-400 uppercase">
+        <div className="inline-flex items-center gap-2 text-label font-semibold tracking-[0.14em] text-plum-400 uppercase">
           <SparkIcon className="size-3.5" />
           In plain language
         </div>
         {streaming && <StatusLine status={status} />}
       </div>
       <StreamingProse text={brief} streaming={streaming} />
-      <p className="mt-5 border-t border-line pt-3.5 text-[12px] leading-relaxed text-ink-subtle">
+      <p className="mt-5 border-t border-line pt-3.5 text-label leading-relaxed text-ink-subtle">
         Written by {demo ? "a stored fixture" : "Claude"} from the clauses above.
         It is a reading of your document, not a decision on your claim — confirm
         anything that affects money with your insurer or TPA.
@@ -335,12 +335,12 @@ function SummaryPoints({
           >
             <div className={`absolute inset-y-0 left-0 w-[3px] ${m.bar}`} />
             <div className="flex items-start justify-between gap-3">
-              <h3 className="font-display text-[16.5px] leading-snug text-ink">
+              <h3 className="font-display text-lg leading-snug text-ink">
                 {p.heading}
               </h3>
               <Pill tone={m.tone}>{m.label}</Pill>
             </div>
-            <p className="mt-1.5 text-[13.5px] leading-relaxed text-ink-muted">
+            <p className="mt-1.5 text-base leading-relaxed text-ink-muted">
               {p.body}
             </p>
           </div>
@@ -361,18 +361,18 @@ function RoomSection({ policy }: { policy: NormalizedPolicy }) {
       />
       <div className="grid gap-3 md:grid-cols-[1fr_1.15fr]">
         <div className="card p-5">
-          <div className="text-[11px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
+          <div className="text-label font-semibold tracking-[0.13em] text-ink-subtle uppercase">
             Your entitlement
           </div>
-          <div className="mt-2 font-display text-[24px] leading-tight text-ink">
+          <div className="mt-2 font-display text-2xl leading-tight text-ink">
             {re.eligibleCategory}
           </div>
           {re.resolvedDailyCap != null && (
-            <div className="figure mt-1 text-[14px] font-normal text-ink-muted">
+            <div className="figure mt-1 text-base font-normal text-ink-muted">
               up to {inr(re.resolvedDailyCap)} a day
             </div>
           )}
-          <p className="mt-3.5 text-[13.5px] leading-relaxed text-ink-muted">
+          <p className="mt-3.5 text-base leading-relaxed text-ink-muted">
             {re.notes}
           </p>
           <div className="mt-4">
@@ -396,14 +396,14 @@ function RoomSection({ policy }: { policy: NormalizedPolicy }) {
                 re.proportionateDeduction ? "bg-clay-500" : "bg-sage-500"
               }`}
             />
-            <div className="text-[11px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
+            <div className="text-label font-semibold tracking-[0.13em] text-ink-subtle uppercase">
               Proportionate deduction
             </div>
           </div>
-          <div className="mt-2 font-display text-[22px] leading-tight text-ink">
+          <div className="mt-2 font-display text-2xl leading-tight text-ink">
             {re.proportionateDeduction ? "Applies to this policy" : "Waived under this policy"}
           </div>
-          <p className="mt-3 text-[13.5px] leading-relaxed text-ink-muted">
+          <p className="mt-3 text-base leading-relaxed text-ink-muted">
             {re.proportionateDeduction ? (
               <>
                 If you take a room above the limit, the policy pays a reduced
@@ -475,13 +475,13 @@ function CostSection({ policy }: { policy: NormalizedPolicy }) {
       <div className="grid gap-3 sm:grid-cols-3">
         {items.map((it) => (
           <div key={it.label} className="card p-4">
-            <div className="text-[11px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
+            <div className="text-label font-semibold tracking-[0.13em] text-ink-subtle uppercase">
               {it.label}
             </div>
-            <div className="figure mt-1.5 text-[22px] leading-none text-ink">
+            <div className="figure mt-1.5 text-2xl leading-none text-ink">
               {it.value}
             </div>
-            <p className="mt-2 text-[12.5px] leading-relaxed text-ink-muted">
+            <p className="mt-2 text-xs leading-relaxed text-ink-muted">
               {it.detail}
             </p>
             {it.citation && (
@@ -512,9 +512,9 @@ function SubLimitSection({ policy }: { policy: NormalizedPolicy }) {
             className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3.5 transition-colors hover:bg-canvas"
           >
             <div className="min-w-0 flex-1">
-              <div className="text-[14px] font-medium text-ink">{s.item}</div>
+              <div className="text-base font-medium text-ink">{s.item}</div>
             </div>
-            <div className="figure text-[13.5px] text-ochre-700">
+            <div className="figure text-base text-ochre-700">
               {s.limit}
             </div>
             <CitationChip citation={s.citation} />
@@ -572,14 +572,14 @@ function ExclusionColumn({
     <div className="card relative overflow-hidden">
       <div className={`absolute inset-x-0 top-0 h-[3px] ${bar}`} />
       <div className="border-b border-line px-4 pt-4 pb-3">
-        <h3 className="font-display text-[17px] leading-snug text-ink">{title}</h3>
-        <p className="mt-0.5 text-[12.5px] text-ink-subtle">{caption}</p>
+        <h3 className="font-display text-lg leading-snug text-ink">{title}</h3>
+        <p className="mt-0.5 text-xs text-ink-subtle">{caption}</p>
       </div>
       <div className="divide-y divide-line">
         {items.map((e, i) => (
           <div key={i} className="px-4 py-3.5">
             <div className="flex flex-wrap items-start justify-between gap-2">
-              <div className="text-[14px] font-medium text-ink">{e.item}</div>
+              <div className="text-base font-medium text-ink">{e.item}</div>
               {e.waitingMonths != null && (
                 <Pill tone={tone}>
                   {e.waitingMonths >= 12
@@ -588,7 +588,7 @@ function ExclusionColumn({
                 </Pill>
               )}
             </div>
-            <p className="mt-1 text-[12.5px] leading-relaxed text-ink-muted">
+            <p className="mt-1 text-xs leading-relaxed text-ink-muted">
               {e.detail}
             </p>
             <div className="mt-2.5">
@@ -612,7 +612,7 @@ function NetworkSection({ policy }: { policy: NormalizedPolicy }) {
         right={
           <Link
             href="/hospitals"
-            className="hidden rounded-full border border-line px-3.5 py-1.5 text-[12.5px] font-medium text-ink-muted transition-colors hover:border-plum-200 hover:text-plum-600 sm:inline-block"
+            className="hidden rounded-full border border-line px-3.5 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:border-plum-200 hover:text-plum-600 sm:inline-block"
           >
             Compare all hospitals
           </Link>
@@ -622,7 +622,7 @@ function NetworkSection({ policy }: { policy: NormalizedPolicy }) {
         {policy.networkHospitals.map((h, i) => (
           <span
             key={i}
-            className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-[13px] text-ink"
+            className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-sm text-ink"
           >
             <span
               className={`inline-block size-1.5 rounded-full ${
@@ -651,14 +651,14 @@ function GapSection({ policy }: { policy: NormalizedPolicy }) {
             {policy.gaps.map((g, i) => (
               <li
                 key={i}
-                className="flex items-start gap-2.5 text-[13.5px] leading-relaxed text-ink-muted"
+                className="flex items-start gap-2.5 text-base leading-relaxed text-ink-muted"
               >
                 <span className="mt-[7px] size-1.5 shrink-0 rounded-full bg-line-strong" />
                 {g}
               </li>
             ))}
           </ul>
-          <p className="mt-4 text-[12.5px] leading-relaxed text-ink-subtle">
+          <p className="mt-4 text-xs leading-relaxed text-ink-subtle">
             These are questions the document leaves open. Nothing has been
             guessed to fill them — ask your insurer directly.
           </p>
@@ -672,17 +672,17 @@ function NextStep() {
   return (
     <div className="mt-12 flex flex-col items-start justify-between gap-4 rounded-[16px] border border-plum-200 bg-plum-50/60 p-5 sm:flex-row sm:items-center sm:p-6">
       <div>
-        <h3 className="font-display text-[20px] leading-snug text-ink">
+        <h3 className="font-display text-xl leading-snug text-ink">
           Now find a hospital this cover actually fits
         </h3>
-        <p className="mt-1 max-w-xl text-[13.5px] leading-relaxed text-ink-muted">
+        <p className="mt-1 max-w-xl text-base leading-relaxed text-ink-muted">
           We will cross-reference these terms against room rates and empanelment,
           and show you what each option leaves you paying.
         </p>
       </div>
       <Link
         href="/hospitals"
-        className="inline-flex shrink-0 items-center gap-2 rounded-full bg-plum-500 px-5 py-2.5 text-[13.5px] font-medium text-white transition-colors hover:bg-plum-600"
+        className="inline-flex shrink-0 items-center gap-2 rounded-full bg-plum-500 px-5 py-2.5 text-base font-medium text-white transition-colors hover:bg-plum-600"
       >
         Find hospitals
         <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
@@ -709,14 +709,14 @@ function ParsingPanel({
   return (
     <div className="mx-auto max-w-[1240px] px-4 pt-10 pb-16 sm:px-6">
       <div className="card mx-auto max-w-xl p-6">
-        <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-plum-400 uppercase">
+        <div className="inline-flex items-center gap-2 text-label font-semibold tracking-[0.14em] text-plum-400 uppercase">
           <SparkIcon className="size-3.5" />
           Policy Understanding Agent
         </div>
-        <h2 className="mt-3 font-display text-[23px] leading-snug text-ink">
+        <h2 className="mt-3 font-display text-2xl leading-snug text-ink">
           Reading your policy
         </h2>
-        <p className="mt-1.5 text-[13.5px] leading-relaxed text-ink-muted">
+        <p className="mt-1.5 text-base leading-relaxed text-ink-muted">
           Extracting the clauses that decide what you pay, then checking every
           quote back against the document itself.
         </p>
@@ -728,9 +728,9 @@ function ParsingPanel({
             return (
               <li key={label} className="flex items-center gap-3">
                 <span
-                  className={`flex size-5 shrink-0 items-center justify-center rounded-full border text-[10px] font-semibold transition-colors ${
+                  className={`flex size-5 shrink-0 items-center justify-center rounded-full border text-label font-semibold transition-colors ${
                     state === "done"
-                      ? "border-sage-500 bg-sage-500 text-white"
+                      ? "border-sage-500 bg-sage-500 text-white dark:text-canvas"
                       : state === "active"
                         ? "animate-breathe border-plum-400 bg-plum-100 text-plum-600"
                         : "border-line text-ink-subtle"
@@ -745,7 +745,7 @@ function ParsingPanel({
                   )}
                 </span>
                 <span
-                  className={`text-[13.5px] transition-colors ${
+                  className={`text-base transition-colors ${
                     state === "todo" ? "text-ink-subtle" : "font-medium text-ink"
                   }`}
                 >

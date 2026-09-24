@@ -305,11 +305,11 @@ export function TradeOffPlot({
               <svg viewBox="0 0 14 14" className="size-3.5" aria-hidden="true">
                 <Mark shape={meta.shape} x={7} y={7} color={meta.color} />
               </svg>
-              <span className="text-[12px] text-ink-muted">{meta.label}</span>
+              <span className="text-label text-ink-muted">{meta.label}</span>
             </span>
           );
         })}
-        <span className="ml-auto text-[11.5px] text-ink-subtle">
+        <span className="ml-auto text-label text-ink-subtle">
           Every value here is listed below
         </span>
       </figcaption>
@@ -391,13 +391,13 @@ function Tooltip({
       }}
     >
       {/* Value leads, label follows. */}
-      <div className="figure text-[17px] leading-none text-ink">
+      <div className="figure text-lg leading-none text-ink">
         {inr(point.y)}
       </div>
-      <div className="mt-0.5 text-[11px] text-ink-subtle">
+      <div className="mt-0.5 text-label text-ink-subtle">
         out of your pocket · {point.x} km
       </div>
-      <div className="mt-2 border-t border-line pt-2 text-[12px] leading-snug font-medium text-ink">
+      <div className="mt-2 border-t border-line pt-2 text-label leading-snug font-medium text-ink">
         {point.name}
       </div>
       <div className="mt-1.5 flex items-center gap-1.5">
@@ -405,9 +405,9 @@ function Tooltip({
         <svg viewBox="0 0 14 6" className="h-1.5 w-3.5" aria-hidden="true">
           <rect width="14" height="6" rx="3" fill={meta.color} />
         </svg>
-        <span className="text-[11px] text-ink-muted">{meta.label}</span>
+        <span className="text-label text-ink-muted">{meta.label}</span>
       </div>
-      <div className="mt-1 text-[11px] text-ink-subtle">
+      <div className="mt-1 text-label text-ink-subtle">
         Ranked #{point.rank} · {point.room}
       </div>
     </div>

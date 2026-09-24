@@ -110,7 +110,7 @@ export default function JourneyPage() {
           <div>
             <div className="card p-5 sm:p-6">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-plum-400 uppercase">
+                <div className="inline-flex items-center gap-2 text-label font-semibold tracking-[0.14em] text-plum-400 uppercase">
                   <SparkIcon className="size-3.5" />
                   {STAGE_META[stage].label} · {STAGE_META[stage].caption}
                 </div>
@@ -118,7 +118,7 @@ export default function JourneyPage() {
               </div>
 
               {guidance ? (
-                <h2 className="mt-3 font-display text-[23px] leading-snug text-ink sm:text-[26px]">
+                <h2 className="mt-3 font-display text-2xl leading-snug text-ink sm:text-3xl">
                   {guidance.headline}
                 </h2>
               ) : (
@@ -128,7 +128,7 @@ export default function JourneyPage() {
                 </div>
               )}
 
-              <p className="mt-2.5 text-[13.5px] leading-relaxed text-ink-muted">
+              <p className="mt-2.5 text-base leading-relaxed text-ink-muted">
                 {STAGE_META[stage].blurb}
               </p>
             </div>
@@ -161,7 +161,7 @@ export default function JourneyPage() {
                 type="button"
                 disabled={idx === 0}
                 onClick={() => goTo(STAGES[idx - 1])}
-                className="inline-flex items-center gap-1.5 rounded-full border border-line px-4 py-2 text-[13px] font-medium text-ink-muted transition-colors hover:border-line-strong hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex items-center gap-1.5 rounded-full border border-line px-4 py-2 text-sm font-medium text-ink-muted transition-colors hover:border-line-strong hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M13 8H4M7.5 4.5 4 8l3.5 3.5" />
@@ -173,7 +173,7 @@ export default function JourneyPage() {
                 <button
                   type="button"
                   onClick={() => goTo(STAGES[idx + 1])}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-plum-500 px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-plum-600"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-plum-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-plum-600"
                 >
                   Move to {STAGE_META[STAGES[idx + 1]].label}
                   <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
@@ -183,7 +183,7 @@ export default function JourneyPage() {
               ) : (
                 <Link
                   href="/coverage"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-plum-200 bg-plum-50 px-4 py-2 text-[13px] font-medium text-plum-600 transition-colors hover:bg-plum-100"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-plum-200 bg-plum-50 px-4 py-2 text-sm font-medium text-plum-600 transition-colors hover:bg-plum-100"
                 >
                   Back to your coverage
                 </Link>
@@ -212,14 +212,14 @@ function GuidanceCard({ item, index }: { item: GuidanceItem; index: number }) {
       <div className={`absolute inset-y-0 left-0 w-[3px] ${k.bar}`} />
       <div className="flex items-center gap-1.5">
         <Icon className={`size-3.5 shrink-0 ${k.icon}`} />
-        <span className="text-[10.5px] font-semibold tracking-[0.12em] text-ink-subtle uppercase">
+        <span className="text-label font-semibold tracking-[0.12em] text-ink-subtle uppercase">
           {k.label}
         </span>
       </div>
-      <h3 className="mt-2 font-display text-[16.5px] leading-snug text-ink">
+      <h3 className="mt-2 font-display text-lg leading-snug text-ink">
         {item.title}
       </h3>
-      <p className="mt-1.5 text-[13px] leading-relaxed text-ink-muted">
+      <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">
         {item.detail}
       </p>
       <div className="mt-3">
@@ -238,16 +238,16 @@ function CaseCard({
   if (!hospital) {
     return (
       <div className="card p-5">
-        <div className="text-[11px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
+        <div className="text-label font-semibold tracking-[0.13em] text-ink-subtle uppercase">
           No hospital chosen
         </div>
-        <p className="mt-2 text-[13.5px] leading-relaxed text-ink-muted">
+        <p className="mt-2 text-base leading-relaxed text-ink-muted">
           Guidance gets sharper once we know where you are being admitted — room
           rates and empanelment change what matters at each stage.
         </p>
         <Link
           href="/hospitals"
-          className="mt-3.5 inline-flex items-center gap-1.5 rounded-full border border-line px-3.5 py-1.5 text-[12.5px] font-medium text-ink-muted transition-colors hover:border-plum-200 hover:text-plum-600"
+          className="mt-3.5 inline-flex items-center gap-1.5 rounded-full border border-line px-3.5 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:border-plum-200 hover:text-plum-600"
         >
           Pick a hospital
         </Link>
@@ -261,17 +261,17 @@ function CaseCard({
 
   return (
     <div className="card p-5">
-      <div className="text-[11px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
+      <div className="text-label font-semibold tracking-[0.13em] text-ink-subtle uppercase">
         Your admission
       </div>
-      <h3 className="mt-2 font-display text-[18px] leading-snug text-ink">
+      <h3 className="mt-2 font-display text-xl leading-snug text-ink">
         {hospital.name}
       </h3>
-      <p className="mt-0.5 text-[12.5px] text-ink-muted">
+      <p className="mt-0.5 text-xs text-ink-muted">
         {hospital.area}, {hospital.city} · {hospital.phone}
       </p>
 
-      <dl className="mt-4 space-y-2.5 border-t border-line pt-3.5 text-[13px]">
+      <dl className="mt-4 space-y-2.5 border-t border-line pt-3.5 text-sm">
         <div className="flex items-center justify-between gap-3">
           <dt className="text-ink-muted">Room</dt>
           <dd className="font-medium text-ink">
@@ -324,11 +324,11 @@ function AskBox({ stage, demo }: { stage: JourneyStage; demo: boolean }) {
 
   return (
     <div className="card p-5">
-      <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-plum-400 uppercase">
+      <div className="inline-flex items-center gap-2 text-label font-semibold tracking-[0.14em] text-plum-400 uppercase">
         <SparkIcon className="size-3.5" />
         Ask about your cover
       </div>
-      <p className="mt-2 text-[12.5px] leading-relaxed text-ink-muted">
+      <p className="mt-2 text-xs leading-relaxed text-ink-muted">
         Answered only from your policy document. Clinical questions are for your
         treating team, not for this.
       </p>
@@ -344,12 +344,12 @@ function AskBox({ stage, demo }: { stage: JourneyStage; demo: boolean }) {
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           placeholder="e.g. does my policy cover the implant?"
-          className="min-w-0 flex-1 rounded-full border border-line bg-canvas px-3.5 py-2 text-[13px] text-ink placeholder:text-ink-subtle/70 focus:border-plum-300 focus:bg-surface focus:outline-none"
+          className="min-w-0 flex-1 rounded-full border border-line bg-canvas px-3.5 py-2 text-sm text-ink placeholder:text-ink-subtle/70 focus:border-plum-300 focus:bg-surface focus:outline-none"
         />
         <button
           type="submit"
           disabled={running || !question.trim()}
-          className="shrink-0 rounded-full bg-plum-500 px-4 py-2 text-[12.5px] font-medium text-white transition-colors hover:bg-plum-600 disabled:bg-line-strong"
+          className="shrink-0 rounded-full bg-plum-500 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-plum-600 disabled:bg-line-strong"
         >
           {running ? "…" : "Ask"}
         </button>
@@ -365,7 +365,7 @@ function AskBox({ stage, demo }: { stage: JourneyStage; demo: boolean }) {
                 setQuestion(s);
                 ask(s);
               }}
-              className="rounded-full border border-line px-2.5 py-1 text-[11.5px] text-ink-muted transition-colors hover:border-plum-200 hover:text-plum-600"
+              className="rounded-full border border-line px-2.5 py-1 text-label text-ink-muted transition-colors hover:border-plum-200 hover:text-plum-600"
             >
               {s}
             </button>
@@ -378,9 +378,9 @@ function AskBox({ stage, demo }: { stage: JourneyStage; demo: boolean }) {
           <StreamingProse
             text={answer}
             streaming={running}
-            className="[&_p]:font-sans [&_p]:text-[13px] [&_p]:leading-[1.7]"
+            className="[&_p]:font-sans [&_p]:text-sm [&_p]:leading-[1.7]"
           />
-          <p className="mt-3 border-t border-line pt-2.5 text-[11.5px] leading-relaxed text-ink-subtle">
+          <p className="mt-3 border-t border-line pt-2.5 text-label leading-relaxed text-ink-subtle">
             {demo ? "Demo Mode response." : "Generated by Claude"} — confirm
             anything that affects money with your insurer before acting on it.
           </p>
