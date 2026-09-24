@@ -239,12 +239,13 @@
   :root {
     color-scheme: light;
     --header-h: 60px;
+    --chrome-h: 94px;
   }
 
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
-    scroll-padding-top: 132px;
+    scroll-padding-top: calc(var(--chrome-h) + 64px);
   }
 
   body {
@@ -537,14 +538,18 @@
   to   { transform: translateX(250%); }
 }
 
-.animate-rise { animation: rise 0.5s var(--ease-out-soft) both; }
-.animate-page { animation: page-in 0.38s var(--ease-out-soft) both; }
+/* Entry animations fill "backwards", not "both": a finished animation must
+   leave no transform behind, or the element becomes the containing block
+   for every position:fixed descendant (sticky bars, toasts, sheets). */
+.animate-rise { animation: rise 0.5s var(--ease-out-soft) backwards; }
+.animate-page { animation: page-in 0.38s var(--ease-out-soft) backwards; }
 .animate-toast { animation: toast-in 0.32s var(--ease-out-soft) both; }
 .animate-float { animation: float 6s ease-in-out infinite; }
 
 .reveal { opacity: 0; }
 .reveal.is-in {
-  animation: reveal 0.62s var(--ease-out-soft) both;
+  opacity: 1;
+  animation: reveal 0.62s var(--ease-out-soft) backwards;
   animation-delay: var(--reveal-delay, 0ms);
 }
 
@@ -559,7 +564,7 @@
 .animate-breathe { animation: breathe 2.4s ease-in-out infinite; }
 
 .stagger > * {
-  animation: rise 0.45s var(--ease-out-soft) both;
+  animation: rise 0.45s var(--ease-out-soft) backwards;
   animation-delay: calc(var(--stagger-step, 55ms) * var(--i, 0));
 }
 

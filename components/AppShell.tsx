@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Wordmark } from "./Brand";
 import { ThemeToggle } from "./ThemeToggle";
 import { ArchRule } from "./Ornament";
@@ -33,6 +33,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { session, reset, update, config } = useStore();
   const toast = useToast();
   const { enabled, done } = useStepState();
+  const headerRef = useRef<HTMLElement>(null);
+
+  // Publish the header's live height so sticky page elements can sit flush
+  // under it — the disclosure strip wraps on phones, so it isn't a constant.
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const set = () =>
+      document.documentElement.style.setProperty("--chrome-h", `${el.offsetHeight}px`);
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const startOver = () => {
     const snapshot = session;
@@ -54,7 +68,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="relative z-[1] flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-40 border-b border-line/80 bg-canvas/80 backdrop-blur-xl backdrop-saturate-150">
+      <header ref={headerRef} className="sticky top-0 z-40 border-b border-line/80 bg-canvas/80 backdrop-blur-xl backdrop-saturate-150">
         <div className="mx-auto flex h-[60px] max-w-[1240px] items-center gap-3 px-4 sm:px-6">
           <Link href="/" className="shrink-0 rounded-lg" aria-label="Hospitality home">
             <Wordmark compact />
