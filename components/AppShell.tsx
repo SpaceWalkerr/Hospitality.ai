@@ -250,7 +250,7 @@ function Footer({ onStartOver }: { onStartOver?: () => void }) {
                 <button
                   type="button"
                   onClick={onStartOver}
-                  className="text-sm text-ink-muted transition-colors hover:text-accent"
+                  className="inline-flex min-h-6 items-center text-sm text-ink-muted transition-colors hover:text-accent"
                 >
                   Start over with a new policy
                 </button>
@@ -298,7 +298,7 @@ function FooterCol({ title, children }: { title: string; children: React.ReactNo
 function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <li>
-      <Link href={href} className="text-sm text-ink-muted transition-colors hover:text-accent">
+      <Link href={href} className="inline-flex min-h-6 items-center text-sm text-ink-muted transition-colors hover:text-accent">
         {children}
       </Link>
     </li>

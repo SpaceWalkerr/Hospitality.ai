@@ -1,6 +1,8 @@
 # Hospitality — Frontend Redesign Plan
 
-Status: **proposal — awaiting approval before implementation.**
+Status: **implemented** on `redesign/frontend` (approved with all four recommendations).
+Deviation from the proposal: body text ships at 15px rather than 15.5px —
+15.5 made the dense hospital cards too loose.
 
 ## 1. What this is
 
@@ -147,9 +149,8 @@ per theme. Components use only semantic names (`bg`, `surface`, `fg`, `muted`,
 
 Status (sage/ochre/clay) and the **data trio** keep their meaning. The light
 data trio stays exactly as validated. A dark trio will be tuned and **must pass
-`scripts/validate_palette.js --mode dark`** before shipping. The first
-candidate already passes CVD, contrast and normal-vision separation and needs
-only a lightness-band tweak.
+`scripts/validate_palette.js --mode dark`** before shipping. Shipped trio: `#18a07e, #bb881a, #c04637` (worst CVD ΔE 9.7, normal-vision
+ΔE 16.1, all ≥3:1).
 
 ### 3.2 Typography
 
@@ -173,7 +174,7 @@ number.
 | `text-label` | 12px / 1.3, +0.08em, semibold | eyebrows, meta, never smaller |
 | `text-xs` | 13px / 1.5 | captions, chips |
 | `text-sm` | 14px / 1.55 | secondary UI |
-| `text-base` | **15.5px / 1.65** | body (up from 13.5px) |
+| `text-base` | **15px / 1.65** | body (up from 13.5px) |
 | `text-lg` | 17.5px / 1.6 | lead paragraphs, brief |
 | `text-xl` | 20px / 1.35 | card titles |
 | `text-2xl` | 24px / 1.25 | section titles |
