@@ -183,24 +183,43 @@ watermark, the section dividers and the journey's stage arc. Reusing a single
 shape is what makes a restrained palette read as an identity rather than as a
 theme.
 
-**Voice and data are different typefaces.** Newsreader carries anything the
-reader has to sit with: headings, the plain-language brief, an italic accent on
-the line that matters. Every *figure* wears Inter, semibold, tabular — numerals
-need to be unambiguous more than characterful, and a serif hero number reads as
-decoration rather than as a fact someone is about to act on.
+**Voice and data are different typefaces.** Fraunces (optical-size and
+"soft" axes) carries anything the reader has to sit with: headings, the
+plain-language brief, an italic accent on the line that matters. Every *figure*
+wears Instrument Sans, semibold, tabular — numerals need to be unambiguous more
+than characterful, and a serif hero number reads as decoration rather than as a
+fact someone is about to act on.
+
+**One answer per screen.** Each screen opens with a single "verdict" block — the
+policy and its sum insured, the top-matched hospital and what you'd pay, the
+current stage — on a softly lit surface. Everything else is visibly secondary,
+and the next step follows you in a sticky bar once the verdict scrolls away.
 
 **Chrome is muted; data is chromatic.** Chips, accent rules and text use the
 sage/ochre/clay steps. Anything that encodes a value — a meter fill, a split
 bar, a plotted point — uses the deeper `--color-viz-*` trio, so the data is the
 only loud thing on screen.
 
-Light-only, deliberately: high even luminance reads better on a phone in a
-bright hospital corridor than a dim theme does. Fully responsive and
-phone-first — top nav becomes a bottom tab bar, the citation drawer becomes a
-bottom sheet, the stage arc becomes a vertical spine, wide tables scroll inside
-their own containers. `prefers-reduced-motion` is honoured throughout, and
-every scroll reveal carries a timeout fail-safe so content can never be left
-permanently invisible.
+**Tokens, not values.** Everything lives in `app/globals.css`: a ten-step type
+scale (nothing smaller than 12px; body at 15px), radius and shadow scales, and
+colour tokens with a full dark theme that redefines the same names under
+`[data-theme="dark"]`, so markup never branches on theme. Reusable components
+(buttons, segmented controls, chips, fields, sheet/modal with focus trapping,
+toasts, skeletons, empty and error states) live in `components/ui/`.
+
+**Light and dark.** The theme follows the system by default, with a
+System / Light / Dark toggle in the header and footer; a pre-paint script
+prevents a flash of the wrong theme. Light suits a bright corridor; dark suits
+a dim ward at 3am.
+
+Fully responsive and phone-first — top stepper becomes a bottom tab bar, the
+citation drawer becomes a bottom sheet, the stage arc becomes a vertical spine,
+case inputs collapse to a one-line summary, wide tables scroll inside their own
+containers. `prefers-reduced-motion` is honoured throughout, and every scroll
+reveal carries a timeout fail-safe so content can never be left permanently
+invisible. Entry animations fill `backwards`, never `both`: a finished
+animation must not leave a transform behind, or it becomes the containing
+block for every `position: fixed` descendant.
 
 ### Data visualization
 
@@ -225,13 +244,15 @@ validated against. Hit targets are 15px around 9px marks, tooltips answer to
 keyboard focus as well as hover, and the ranked list below the chart is its
 table view — every plotted value is readable there without hovering anything.
 
-The palette is computed, not eyeballed. Against the `#fffdfb` surface on the
-all-pairs list: worst CVD ΔE **10.3** (deutan; target ≥8), worst normal-vision
-ΔE **20.0** (floor ≥15), all three ≥3:1 contrast, no warnings. Re-run before
+The palette is computed, not eyeballed, in both themes. Light, against
+`#fffdfb`: worst CVD ΔE **10.3** (deutan; target ≥8), worst normal-vision ΔE
+**20.0** (floor ≥15). Dark, against `#1e1823`: worst CVD ΔE **9.7**,
+normal-vision ΔE **16.1**. All six marks clear 3:1 contrast. Re-run before
 changing any of them:
 
 ```bash
 node scripts/validate_palette.js "#00846c,#b8871c,#9e2b23" --mode light --surface "#fffdfb" --pairs all
+node scripts/validate_palette.js "#18a07e,#bb881a,#c04637" --mode dark --surface "#1e1823" --pairs all
 ```
 
 ## Data

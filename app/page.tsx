@@ -1,253 +1,257 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { CapMeter } from "@/components/CapMeter";
-import { AmbientWash, ArchField, ArchRule } from "@/components/Ornament";
+import { HeroPreview } from "@/components/HeroPreview";
+import { AmbientWash, ArchRule } from "@/components/Ornament";
 import { Reveal } from "@/components/motion";
-import { ErrorNote, Pill } from "@/components/ui";
+import {
+  Button,
+  ButtonLink,
+  ErrorNote,
+  Eyebrow,
+  Pill,
+  Segmented,
+  TabPanel,
+} from "@/components/ui";
+import {
+  ArrowRight,
+  Calculator,
+  Check,
+  Doc,
+  Lock,
+  Pin,
+  Route,
+  Shield,
+  Stethoscope,
+  Upload,
+} from "@/components/ui/Icons";
 import { SAMPLE_POLICIES } from "@/lib/data/samplePolicies";
+import { listHospitals } from "@/lib/data/hospitals";
 import { useStore } from "@/lib/store";
 
 type Tab = "sample" | "paste" | "upload";
+type Origin = "sample" | "paste" | "pdf";
+
+/** Why you might pick each sample — the first-time visitor's missing context. */
+const SAMPLE_HINT: Record<string, string> = {
+  meridian: "Best first look",
+  pmjay: "Government scheme",
+  ridgeway: "Co-pay & deductible",
+};
+
+/** Starts a fresh session from a document and moves to the coverage screen. */
+function useBegin() {
+  const router = useRouter();
+  const { update } = useStore();
+  return useCallback(
+    (text: string, name: string, origin: Origin, sampleId?: string) => {
+      update({
+        source: { text, name, origin },
+        sampleId: sampleId ?? null,
+        policy: null,
+        points: [],
+        brief: "",
+        matches: [],
+        comparison: "",
+        guidance: {},
+        visited: ["admission"],
+        stage: "admission",
+        chosen: null,
+      });
+      router.push("/coverage");
+    },
+    [router, update],
+  );
+}
 
 export default function Landing() {
+  const [tab, setTab] = useState<Tab>("sample");
+
+  const openOwn = () => {
+    setTab("paste");
+    document.getElementById("start")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <AppShell>
-      <Hero />
-      <Questions />
+      <Resume />
+      <Hero onOwn={openOwn} />
+      <Start tab={tab} setTab={setTab} />
+      <HowItWorks />
       <Showcase />
+      <HowWeCheck />
       <Boundaries />
-      <Footer />
+      <FinalCta onOwn={openOwn} />
     </AppShell>
   );
 }
 
-function Hero() {
+/* ---------------- returning visitor ---------------- */
+
+function Resume() {
+  const { session, hydrated } = useStore();
+  if (!hydrated || !session.policy) return null;
+  const next = session.chosen ? "/journey" : "/hospitals";
+  return (
+    <div className="border-b border-line/70 bg-surface/60">
+      <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        <p className="text-sm text-ink-muted">
+          <span className="font-medium text-ink">Welcome back.</span> You were
+          reading <span className="font-medium text-ink">{session.policy.planName}</span>.
+        </p>
+        <ButtonLink href={next} size="sm" variant="soft">
+          Pick up where you left off <ArrowRight className="size-3.5" />
+        </ButtonLink>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- hero ---------------- */
+
+function Hero({ onOwn }: { onOwn: () => void }) {
+  const begin = useBegin();
+  const [going, setGoing] = useState(false);
+  const first = SAMPLE_POLICIES[0];
+
   return (
     <section className="relative overflow-hidden">
       <AmbientWash />
 
-      {/* The arch motif as a watermark behind the headline — the wordmark's
-          portico at scale, drawn once on load. Sits under the type rather than
-          beside it so it reads as the room the words are standing in. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute top-6 -left-24 hidden w-[720px] text-plum-300/55 lg:block"
-      >
-        <ArchField className="w-full" />
-      </div>
-
-      <div className="relative mx-auto grid max-w-[1240px] items-start gap-12 px-4 pt-12 pb-20 sm:px-6 lg:grid-cols-[1.06fr_0.94fr] lg:gap-16 lg:pt-20 lg:pb-28">
+      <div className="relative mx-auto grid max-w-[1240px] items-center gap-10 px-4 pt-10 pb-16 sm:px-6 sm:pt-14 lg:grid-cols-[1.08fr_0.92fr] lg:gap-14 lg:pt-20 lg:pb-24">
         <div className="animate-rise relative">
-          <span className="inline-flex items-center gap-2 rounded-full border border-plum-200 bg-surface/70 px-3 py-1 text-[11px] font-semibold tracking-[0.13em] text-plum-600 uppercase backdrop-blur-sm">
+          <span className="inline-flex items-center gap-2 rounded-full border border-plum-200 bg-surface/70 px-3 py-1.5 text-label font-semibold tracking-[0.1em] text-plum-600 uppercase backdrop-blur-sm">
             <span className="size-1.5 rounded-full bg-plum-400" />
             Insurance-aware care navigation
           </span>
 
-          <h1 className="mt-6 font-display text-[42px] leading-[1.02] tracking-[-0.03em] text-ink sm:text-[58px] lg:text-[68px]">
-            Nobody should have
-            <br className="hidden sm:block" /> to decode a policy
-            <br className="hidden sm:block" /> document{" "}
-            <em className="font-normal text-plum-500 italic">at 3am.</em>
+          <h1 className="mt-5 max-w-[13ch] font-display text-display tracking-[-0.03em] text-ink">
+            Nobody should have to decode a policy{" "}
+            <em className="font-normal whitespace-nowrap text-plum-500 italic">at 3am.</em>
           </h1>
 
-          <p className="mt-7 max-w-xl text-[16.5px] leading-[1.72] text-ink-muted sm:text-[17.5px]">
-            When someone is being admitted, the questions come fast and the
-            answers are buried in forty pages of clauses. Hospitality reads your
-            cover, answers them in plain language, and shows you the exact line
+          <p className="mt-6 max-w-xl text-lg text-ink-muted">
+            Hospitality reads your health cover, answers the questions that come
+            up at admission in plain language, and shows you the exact line
             every answer came from.
           </p>
 
-          <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Button
+              size="lg"
+              loading={going}
+              onClick={() => {
+                setGoing(true);
+                begin(first.text, first.label, "sample", first.id);
+              }}
+            >
+              See it read a real policy <ArrowRight />
+            </Button>
+            <Button size="lg" variant="secondary" onClick={onOwn}>
+              Use my own policy
+            </Button>
+          </div>
+          <p className="mt-3 text-sm text-ink-subtle">
+            No sign-up. Takes about ten seconds. Nothing is stored.
+          </p>
+
+          <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2.5">
             {[
               "Every claim cites its clause",
               "Built for a phone in a waiting room",
               "Never diagnoses or advises treatment",
             ].map((t, i) => (
               <Reveal
+                as="li"
                 key={t}
                 delay={220 + i * 90}
-                className="inline-flex items-center gap-2 text-[13px] text-ink-muted"
+                className="inline-flex items-center gap-2 text-sm text-ink-muted"
               >
-                <CheckMark /> {t}
+                <span className="grid size-5 place-items-center rounded-full bg-sage-100 text-sage-700">
+                  <Check className="size-3" />
+                </span>
+                {t}
               </Reveal>
             ))}
-          </div>
+          </ul>
         </div>
 
-        <div className="lg:sticky lg:top-[124px]">
-          <StartCard />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-const QUESTIONS = [
-  {
-    n: "01",
-    q: "Which hospitals will actually take my card?",
-    a: "Your policy's network is cross-referenced against every hospital, room category and daily rate — then ranked, with the trade-offs said out loud rather than buried in a score.",
-    to: "Hospital finder",
-  },
-  {
-    n: "02",
-    q: "What room am I allowed to ask for?",
-    a: "Room rent is the most consequential number in an Indian admission and almost never shown visually. We draw it against your limit, and warn you when taking a better room quietly scales down the surgeon's fee too.",
-    to: "Coverage dashboard",
-  },
-  {
-    n: "03",
-    q: "What am I going to be asked to pay at discharge?",
-    a: "Co-pay, deductible, sub-limits, consumables, proportionate deduction, the reimbursement haircut. Each modelled, each itemised, none of it guessed.",
-    to: "Cost estimate",
-  },
-];
-
-function Questions() {
-  return (
-    <section className="border-t border-line/70 bg-surface/50">
-      <div className="mx-auto max-w-[1240px] px-4 py-16 sm:px-6 lg:py-24">
-        <Reveal className="max-w-2xl">
-          <h2 className="font-display text-[30px] leading-[1.15] tracking-[-0.02em] text-ink sm:text-[38px]">
-            Three questions nobody can answer
-            <em className="font-normal text-plum-500 italic"> in a corridor.</em>
-          </h2>
-        </Reveal>
-
-        <ArchRule className="my-10" />
-
-        <div className="grid gap-10 md:grid-cols-3 md:gap-8">
-          {QUESTIONS.map((item, i) => (
-            <Reveal key={item.n} delay={i * 120}>
-              <div className="figure text-[12px] tracking-[0.2em] text-plum-300">
-                {item.n}
-              </div>
-              <h3 className="mt-3.5 font-display text-[21px] leading-snug text-ink">
-                {item.q}
-              </h3>
-              <p className="mt-3 text-[14px] leading-[1.72] text-ink-muted">
-                {item.a}
-              </p>
-              <div className="mt-4 inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.11em] text-plum-400 uppercase">
-                <span className="h-px w-5 bg-plum-300" />
-                {item.to}
-              </div>
-            </Reveal>
-          ))}
+        <div className="animate-rise [animation-delay:160ms]">
+          <HeroPreview />
         </div>
       </div>
     </section>
   );
 }
 
-function Showcase() {
+/* ---------------- start ---------------- */
+
+function Start({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
   return (
-    <section className="mx-auto max-w-[1240px] px-4 py-16 sm:px-6 lg:py-24">
-      <div className="grid items-center gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
+    <section id="start" className="scroll-mt-28 border-y border-line/70 bg-surface/50">
+      <div className="mx-auto grid max-w-[1240px] gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] [&>*]:min-w-0 lg:gap-16 lg:py-24">
         <Reveal>
-          <div className="text-[11px] font-semibold tracking-[0.16em] text-plum-400 uppercase">
-            The clause that catches people
-          </div>
-          <h2 className="mt-3 font-display text-[28px] leading-[1.16] tracking-[-0.02em] text-ink sm:text-[34px]">
-            A nicer room can cost you
-            <em className="font-normal text-plum-500 italic"> four times</em> the
-            room difference.
+          <Eyebrow>Step one</Eyebrow>
+          <h2 className="mt-3 font-display text-3xl text-ink sm:text-4xl">
+            Start with your policy
+            <em className="font-normal text-plum-500 italic"> — or one of ours.</em>
           </h2>
-          <p className="mt-4 max-w-lg text-[14.5px] leading-[1.75] text-ink-muted">
-            Most retail policies in India cap room rent at 1% of the sum insured
-            and then apply <strong className="font-semibold text-ink">proportionate
-            deduction</strong>: exceed the cap and the insurer pays a reduced
-            share of <em>every</em> associated charge — surgeon, anaesthetist,
-            theatre, nursing — in the same ratio. On a ₹2.5 lakh bill that is
-            usually far more than the room itself.
+          <p className="mt-4 max-w-md text-base text-ink-muted">
+            The samples are complete, realistic policy documents: a retail
+            floater, a government scheme and an employer cover. They work
+            without an API key, so they are the fastest way to see what
+            Hospitality does.
           </p>
-          <p className="mt-3.5 max-w-lg text-[13.5px] leading-relaxed text-ink-subtle">
-            It is one sentence, on page nine, in a document nobody reads at
-            admission. So we put it on the first screen instead.
-          </p>
+          <ul className="mt-6 space-y-3 text-sm text-ink-muted">
+            <li className="flex gap-3">
+              <Lock className="mt-0.5 size-5 shrink-0 text-plum-400" />
+              Read on the server and never stored. Your session lives only in
+              this browser tab.
+            </li>
+            <li className="flex gap-3">
+              <Doc className="mt-0.5 size-5 shrink-0 text-plum-400" />
+              A policy schedule, certificate of insurance or scheme entitlement
+              letter all work.
+            </li>
+          </ul>
         </Reveal>
 
-        <Reveal delay={140}>
-          <div className="card overflow-hidden shadow-[var(--shadow-lift)]">
-            <div className="flex items-center justify-between gap-3 border-b border-line bg-canvas px-4 py-3">
-              <span className="text-[11px] font-semibold tracking-[0.14em] text-ink-subtle uppercase">
-                Single Private · Kaveri Institute
-              </span>
-              <Pill tone="clay">Over limit</Pill>
-            </div>
-            <div className="space-y-4 p-4 sm:p-5">
-              <CapMeter rate={11500} cap={5000} label="Room rent" />
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-[11px] border border-line bg-canvas p-3.5">
-                  <div className="text-[11px] font-semibold tracking-[0.12em] text-ink-subtle uppercase">
-                    Room difference
-                  </div>
-                  <div className="figure mt-1.5 text-[22px] leading-none text-ink">
-                    ₹26,000
-                  </div>
-                  <div className="mt-1 text-[11.5px] text-ink-subtle">
-                    4 days over the cap
-                  </div>
-                </div>
-                <div className="rounded-[11px] border border-clay-300/50 bg-clay-50 p-3.5">
-                  <div className="text-[11px] font-semibold tracking-[0.12em] text-clay-600 uppercase">
-                    Also deducted
-                  </div>
-                  <div className="figure mt-1.5 text-[22px] leading-none text-clay-600">
-                    ₹1,39,650
-                  </div>
-                  <div className="mt-1 text-[11.5px] text-clay-600/80">
-                    57% of every associated charge
-                  </div>
-                </div>
-              </div>
-              <p className="text-[12.5px] leading-relaxed text-ink-subtle">
-                Illustrative, on the bundled Meridian sample policy. Your own
-                numbers come from your own document.
-              </p>
-            </div>
-          </div>
+        <Reveal delay={100}>
+          <StartCard tab={tab} setTab={setTab} />
         </Reveal>
       </div>
     </section>
   );
 }
 
-function StartCard() {
-  const router = useRouter();
-  const { update, config } = useStore();
-  const [tab, setTab] = useState<Tab>("sample");
+const MIN_CHARS = 200;
+
+function StartCard({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
+  const begin = useBegin();
+  const { config } = useStore();
   const [pasted, setPasted] = useState("");
+  const [touched, setTouched] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const prefix = "start";
 
-  const begin = (
-    text: string,
-    name: string,
-    origin: "sample" | "paste" | "pdf",
-    sampleId?: string,
-  ) => {
-    update({
-      source: { text, name, origin },
-      sampleId: sampleId ?? null,
-      policy: null,
-      points: [],
-      brief: "",
-      matches: [],
-      comparison: "",
-      guidance: {},
-      visited: ["admission"],
-      stage: "admission",
-      chosen: null,
-    });
-    router.push("/coverage");
-  };
+  const chars = pasted.trim().length;
+  const pasteError =
+    touched && chars > 0 && chars < MIN_CHARS
+      ? `Paste at least ${MIN_CHARS} characters so there is something to read — ${MIN_CHARS - chars} to go.`
+      : null;
 
   const onUpload = async (file: File) => {
+    if (!/\.pdf$/i.test(file.name) && file.type !== "application/pdf") {
+      setError("That doesn’t look like a PDF. Choose a .pdf file, or paste the text instead.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -264,139 +268,136 @@ function StartCard() {
   };
 
   return (
-    <div
-      className="card animate-rise overflow-hidden shadow-[var(--shadow-hero)]"
-      style={{ animationDelay: "120ms" }}
-    >
-      <div className="border-b border-line px-5 pt-5 pb-4">
-        <h2 className="font-display text-[22px] leading-tight text-ink">
-          Start with your policy
-        </h2>
-        <p className="mt-1.5 text-[13.5px] leading-relaxed text-ink-muted">
-          Read on the server, never stored. Nothing you add here leaves this app.
-        </p>
-      </div>
-
-      <div className="flex gap-1 border-b border-line bg-canvas px-2 py-2">
-        {(
-          [
+    <div className="card overflow-hidden shadow-[var(--shadow-lg)]">
+      <div className="border-b border-line p-3 sm:p-4">
+        <Segmented
+          as="tabs"
+          idPrefix={prefix}
+          label="How to add your policy"
+          value={tab}
+          onChange={(t) => {
+            setTab(t);
+            setError(null);
+          }}
+          options={[
             ["sample", "Use a sample"],
             ["paste", "Paste text"],
             ["upload", "Upload PDF"],
-          ] as [Tab, string][]
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => {
-              setTab(id);
-              setError(null);
-            }}
-            className={`flex-1 rounded-[9px] px-3 py-2 text-[13px] font-medium transition-all duration-200 ${
-              tab === id
-                ? "bg-surface text-ink shadow-[0_1px_2px_rgba(36,28,43,.07)]"
-                : "text-ink-subtle hover:text-ink-muted"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+          ]}
+        />
       </div>
 
       <div className="p-4 sm:p-5">
         {tab === "sample" && (
-          <div className="stagger space-y-2.5" style={{ ["--stagger-step" as string]: "70ms" }}>
-            {SAMPLE_POLICIES.map((s, i) => (
-              <button
-                key={s.id}
-                type="button"
-                style={{ ["--i" as string]: i }}
-                onClick={() => begin(s.text, s.label, "sample", s.id)}
-                className="group relative block w-full overflow-hidden rounded-[12px] border border-line bg-surface p-4 text-left transition-all duration-300 hover:-translate-y-[2px] hover:border-plum-200 hover:shadow-[var(--shadow-lift)]"
-              >
-                <span className="absolute inset-y-0 left-0 w-[3px] origin-top scale-y-0 bg-plum-400 transition-transform duration-300 group-hover:scale-y-100" />
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-[10.5px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
-                      {s.insurer}
+          <TabPanel id="sample" prefix={prefix}>
+            <ul className="stagger space-y-3" style={{ ["--stagger-step" as string]: "70ms" }}>
+              {SAMPLE_POLICIES.map((s, i) => (
+                <li key={s.id} style={{ ["--i" as string]: i }}>
+                  <button
+                    type="button"
+                    onClick={() => begin(s.text, s.label, "sample", s.id)}
+                    className="lift group relative block w-full overflow-hidden rounded-[14px] border border-line bg-surface p-4 text-left sm:p-5"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="label">{s.insurer}</div>
+                        <div className="mt-1 font-display text-xl text-ink">{s.label}</div>
+                      </div>
+                      <Pill tone={s.accent}>{SAMPLE_HINT[s.id] ?? s.tag}</Pill>
                     </div>
-                    <div className="mt-1 font-display text-[17px] leading-snug text-ink">
-                      {s.label}
-                    </div>
-                  </div>
-                  <Pill tone={s.accent}>{s.tag}</Pill>
-                </div>
-                <p className="mt-2 text-[13px] leading-relaxed text-ink-muted">
-                  {s.blurb}
-                </p>
-                <span className="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-medium text-plum-500">
-                  Read this policy
-                  <svg viewBox="0 0 16 16" className="size-3.5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" />
-                  </svg>
-                </span>
-              </button>
-            ))}
-          </div>
+                    <p className="mt-2 text-sm text-ink-muted">{s.blurb}</p>
+                    <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-accent">
+                      Read this policy
+                      <ArrowRight className="size-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </TabPanel>
         )}
 
         {tab === "paste" && (
-          <div className="space-y-3">
+          <TabPanel id="paste" prefix={prefix} className="space-y-3">
+            <label htmlFor="paste-input" className="label block">
+              Policy text
+            </label>
             <textarea
+              id="paste-input"
               value={pasted}
               onChange={(e) => setPasted(e.target.value)}
-              rows={10}
+              onBlur={() => setTouched(true)}
+              rows={9}
+              aria-invalid={pasteError ? true : undefined}
+              aria-describedby="paste-help"
               placeholder="Paste the text of your policy schedule, certificate of insurance, or entitlement letter…"
-              className="w-full resize-y rounded-[11px] border border-line bg-canvas px-3.5 py-3 font-mono text-[12.5px] leading-relaxed text-ink placeholder:text-ink-subtle/80 focus:border-plum-300 focus:bg-surface focus:outline-none"
+              className="field resize-y font-mono text-xs leading-relaxed"
             />
-            <div className="flex items-center justify-between gap-3">
-              <span className="figure text-[12px] font-normal text-ink-subtle">
-                {pasted.trim().length.toLocaleString()} characters
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span id="paste-help" className={`text-xs ${pasteError ? "font-medium text-clay-600" : "text-ink-subtle"}`}>
+                {pasteError ?? (
+                  <>
+                    <span className="figure font-normal">{chars.toLocaleString()}</span> characters
+                    {chars >= MIN_CHARS && (
+                      <span className="ml-2 inline-flex items-center gap-1 text-sage-700">
+                        <Check className="size-3" /> Ready
+                      </span>
+                    )}
+                  </>
+                )}
               </span>
-              <button
-                type="button"
-                disabled={pasted.trim().length < 200}
+              <Button
+                disabled={chars < MIN_CHARS}
                 onClick={() => begin(pasted, "Pasted policy text", "paste")}
-                className="rounded-full bg-plum-500 px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-plum-600 disabled:cursor-not-allowed disabled:bg-line-strong"
               >
-                Read this policy
-              </button>
+                Read this policy <ArrowRight className="size-3.5" />
+              </Button>
             </div>
-            {pasted.trim().length > 0 && pasted.trim().length < 200 && (
-              <p className="text-[12px] text-ink-subtle">
-                Paste at least a couple of hundred characters so there is
-                something to read.
-              </p>
-            )}
-          </div>
+          </TabPanel>
         )}
 
         {tab === "upload" && (
-          <div className="space-y-3">
+          <TabPanel id="upload" prefix={prefix} className="space-y-3">
             <button
               type="button"
               disabled={busy}
               onClick={() => fileRef.current?.click()}
-              className="flex w-full flex-col items-center gap-3 rounded-[12px] border border-dashed border-line-strong bg-canvas px-4 py-9 transition-colors hover:border-plum-300 hover:bg-plum-50/50 disabled:opacity-60"
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragging(true);
+              }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragging(false);
+                const f = e.dataTransfer.files?.[0];
+                if (f) void onUpload(f);
+              }}
+              className={`flex w-full flex-col items-center gap-3 rounded-[14px] border-2 border-dashed px-4 py-10 transition-colors disabled:cursor-progress ${
+                dragging
+                  ? "border-accent bg-accent-soft"
+                  : "border-line-strong bg-canvas hover:border-plum-300 hover:bg-plum-50"
+              }`}
             >
               {busy ? (
                 <>
-                  <span className="animate-breathe size-6 rounded-full bg-plum-300" />
-                  <span className="text-[13.5px] font-medium text-ink-muted">
+                  <span className="relative h-1 w-40 overflow-hidden rounded-full bg-plum-100">
+                    <span className="progress-indeterminate absolute inset-y-0 w-1/3 rounded-full bg-accent" />
+                  </span>
+                  <span className="text-base font-medium text-ink-muted" role="status">
                     Reading the file…
                   </span>
                 </>
               ) : (
                 <>
-                  <svg viewBox="0 0 24 24" className="size-7 text-plum-400" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5" />
-                    <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
-                  </svg>
-                  <span className="text-[14px] font-medium text-ink">
-                    Choose a PDF
+                  <span className="grid size-12 place-items-center rounded-full bg-plum-100 text-plum-500">
+                    <Upload className="size-6" />
                   </span>
-                  <span className="text-[12.5px] text-ink-subtle">
-                    Text-based PDFs up to 12 MB. Scans will not read.
+                  <span className="text-base font-medium text-ink">
+                    {dragging ? "Drop it here" : "Choose a PDF or drag it here"}
+                  </span>
+                  <span className="text-xs text-ink-subtle">
+                    Text-based PDFs up to 12 MB. Scanned images won’t read.
                   </span>
                 </>
               )}
@@ -405,13 +406,16 @@ function StartCard() {
               ref={fileRef}
               type="file"
               accept="application/pdf,.pdf"
-              className="hidden"
+              className="sr-only"
+              tabIndex={-1}
+              aria-hidden="true"
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (f) void onUpload(f);
+                e.target.value = "";
               }}
             />
-          </div>
+          </TabPanel>
         )}
 
         {error && (
@@ -421,11 +425,11 @@ function StartCard() {
         )}
 
         {config?.demo && tab !== "sample" && (
-          <div className="mt-3 rounded-[11px] border border-ochre-300/50 bg-ochre-50 p-3 text-[12.5px] leading-relaxed text-ochre-700">
+          <div className="mt-3 rounded-[12px] border border-ochre-300/50 bg-ochre-50 p-3.5 text-xs text-ochre-700">
             Demo Mode is on because no{" "}
-            <code className="font-mono text-[11.5px]">ANTHROPIC_API_KEY</code> is
-            set. Your own document can be uploaded, but it cannot be parsed until
-            a key is configured — the three samples work either way.
+            <code className="font-mono">ANTHROPIC_API_KEY</code> is set. Your
+            own document can be added, but it cannot be parsed until a key is
+            configured — the three samples work either way.
           </div>
         )}
       </div>
@@ -433,82 +437,330 @@ function StartCard() {
   );
 }
 
-function Boundaries() {
+/* ---------------- how it works ---------------- */
+
+const STEPS = [
+  {
+    Icon: Shield,
+    to: "Coverage",
+    q: "What does my policy actually cover?",
+    a: "Room limits, co-pay, sub-limits, exclusions and waiting periods, explained in plain language. Every line links to the clause it came from.",
+  },
+  {
+    Icon: Pin,
+    to: "Hospitals",
+    q: "Which hospitals will actually take my card?",
+    a: "Every hospital and room category is checked against your network and daily limits, then ranked. What you'd pay is shown next to each one.",
+  },
+  {
+    Icon: Route,
+    to: "Journey",
+    q: "What do I need to do at each stage?",
+    a: "Admission, tests, the procedure and recovery. At each stage you're told about the deadlines and caps while you can still act on them.",
+  },
+];
+
+function HowItWorks() {
   return (
-    <section className="border-t border-line/70 bg-surface/50">
-      <div className="mx-auto max-w-[1240px] px-4 py-16 sm:px-6 lg:py-20">
-        <div className="grid gap-10 md:grid-cols-[0.8fr_1.2fr] md:gap-14">
+    <section id="how-it-works" className="scroll-mt-28">
+      <div className="mx-auto max-w-[1240px] px-4 py-16 sm:px-6 lg:py-24">
+        <Reveal className="max-w-2xl">
+          <Eyebrow>How it works</Eyebrow>
+          <h2 className="mt-3 font-display text-3xl text-ink sm:text-4xl">
+            Three questions nobody can answer
+            <em className="font-normal text-plum-500 italic"> in a corridor.</em>
+          </h2>
+        </Reveal>
+
+        <ol className="relative mt-12 grid gap-5 md:grid-cols-3">
+          <span
+            aria-hidden="true"
+            className="absolute top-7 right-[16%] left-[16%] hidden h-px bg-gradient-to-r from-plum-200 via-plum-300 to-plum-200 md:block"
+          />
+          {STEPS.map((s, i) => (
+            <Reveal as="li" key={s.to} delay={i * 120} className="relative">
+              <div className="card lift h-full p-6">
+                <div className="flex items-center gap-3">
+                  <span className="relative grid size-14 place-items-center rounded-2xl bg-accent-soft text-accent ring-8 ring-canvas">
+                    <s.Icon className="size-6" />
+                  </span>
+                  <div>
+                    <div className="figure text-label tracking-[0.18em] text-plum-400">
+                      STEP {String(i + 1).padStart(2, "0")}
+                    </div>
+                    <div className="text-sm font-semibold text-ink">{s.to}</div>
+                  </div>
+                </div>
+                <h3 className="mt-5 font-display text-xl text-ink">{s.q}</h3>
+                <p className="mt-2.5 text-base text-ink-muted">{s.a}</p>
+              </div>
+            </Reveal>
+          ))}
+        </ol>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------- showcase ---------------- */
+
+function Showcase() {
+  return (
+    <section className="border-y border-line/70 bg-surface/50">
+      <div className="mx-auto grid max-w-[1240px] items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16 lg:py-24">
+        <Reveal>
+          <Eyebrow>The clause that catches people</Eyebrow>
+          <h2 className="mt-3 font-display text-3xl text-ink sm:text-4xl">
+            A nicer room can cost you
+            <em className="font-normal text-plum-500 italic"> five times</em> the
+            room difference.
+          </h2>
+          <p className="mt-4 max-w-lg text-base text-ink-muted">
+            Most retail policies in India cap room rent at 1% of the sum insured
+            and then apply <strong className="font-semibold text-ink">proportionate
+            deduction</strong>: exceed the cap and the insurer pays a reduced
+            share of <em>every</em> associated charge — surgeon, anaesthetist,
+            theatre, nursing — in the same ratio. On a ₹2.5 lakh bill that is
+            usually far more than the room itself.
+          </p>
+          <p className="mt-3.5 max-w-lg text-sm text-ink-subtle">
+            It is one sentence, on page nine, in a document nobody reads at
+            admission. So we put it on the first screen instead.
+          </p>
+        </Reveal>
+
+        <Reveal delay={140}>
+          <div className="card-verdict">
+            <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-3.5">
+              <span className="label">Single Private · Kaveri Institute</span>
+              <Pill tone="clay">Over limit</Pill>
+            </div>
+            <div className="space-y-5 p-5">
+              <CapMeter rate={11500} cap={5000} label="Room rent" />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-[14px] border border-line bg-canvas p-4">
+                  <div className="label">Room difference</div>
+                  <div className="figure mt-2 text-2xl leading-none text-ink">₹26,000</div>
+                  <div className="mt-1.5 text-xs text-ink-subtle">4 days over the cap</div>
+                </div>
+                <div className="rounded-[14px] border border-clay-300/60 bg-clay-50 p-4">
+                  <div className="label !text-clay-600">Also deducted</div>
+                  <div className="figure mt-2 text-2xl leading-none text-clay-600">₹1,39,650</div>
+                  <div className="mt-1.5 text-xs text-clay-600">
+                    57% of every associated charge
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-ink-subtle">
+                Illustrative, on the bundled Meridian sample policy. Your own
+                numbers come from your own document.
+              </p>
+            </div>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------- trust ---------------- */
+
+const CHECKS = [
+  {
+    Icon: Doc,
+    title: "Every claim cites its clause",
+    body: "Press any clause chip to see the exact lines of your document, highlighted.",
+  },
+  {
+    Icon: Shield,
+    title: "Quotes are re-checked against the source",
+    body: "The server looks for each quoted passage in your document. Anything it can’t find is marked, not hidden.",
+  },
+  {
+    Icon: Calculator,
+    title: "Money is computed, not generated",
+    body: "Caps, co-pay, deductibles and proportionate deduction are calculated in code. No model does arithmetic on your bill.",
+  },
+  {
+    Icon: Stethoscope,
+    title: "It never gives medical advice",
+    body: "It doesn’t diagnose, judge how serious something is, or recommend treatment. Only coverage.",
+  },
+];
+
+function HowWeCheck() {
+  const hospitals = listHospitals().length;
+  const stats = [
+    { value: String(SAMPLE_POLICIES.length), label: "real-world policy formats" },
+    { value: String(hospitals), label: "hospitals ranked per case" },
+    { value: "100%", label: "of claims linked to a clause" },
+    { value: "0", label: "documents stored" },
+  ];
+
+  return (
+    <section id="how-we-check" className="scroll-mt-28">
+      <div className="mx-auto max-w-[1240px] px-4 py-16 sm:px-6 lg:py-24">
+        <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
           <Reveal>
-            <h2 className="font-display text-[26px] leading-[1.18] tracking-[-0.02em] text-ink sm:text-[30px]">
-              What this is, and
-              <em className="font-normal text-plum-500 italic"> what it is not.</em>
+            <Eyebrow>How we check</Eyebrow>
+            <h2 className="mt-3 font-display text-3xl text-ink sm:text-4xl">
+              Built so you don’t have to
+              <em className="font-normal text-plum-500 italic"> take our word for it.</em>
             </h2>
-            <p className="mt-3.5 max-w-sm text-[13.5px] leading-[1.72] text-ink-muted">
-              The boundary matters more here than in most software, so it is
-              drawn explicitly rather than left to a footer.
+            <p className="mt-4 max-w-md text-base text-ink-muted">
+              An answer about your hospital bill is only useful if you can check
+              it. So every answer shows where it came from.
+            </p>
+
+            <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-[18px] border border-line bg-line">
+              {stats.map((s) => (
+                <div key={s.label} className="bg-surface p-4 sm:p-5">
+                  <dt className="sr-only">{s.label}</dt>
+                  <dd>
+                    <div className="figure text-3xl leading-none text-ink">{s.value}</div>
+                    <div className="mt-1.5 text-xs text-ink-muted">{s.label}</div>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-label font-medium text-ink-muted">
+              <span className="size-1.5 rounded-full bg-plum-400" />
+              Built for the GE HealthCare Precision Care Challenge 2026
             </p>
           </Reveal>
 
-          <div className="grid gap-8 sm:grid-cols-2">
-            <Reveal delay={100}>
-              <div className="mb-3 inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.12em] text-sage-700 uppercase">
-                <span className="size-1.5 rounded-full bg-viz-good" /> It does
-              </div>
-              <ul className="space-y-2.5 text-[13.5px] leading-relaxed text-ink-muted">
-                {[
-                  "Explain what your policy document appears to say",
-                  "Show the exact lines behind every statement",
-                  "Compare hospitals on coverage, cost and distance",
-                  "Warn you about deadlines and caps before they bite",
-                ].map((t) => (
-                  <li key={t} className="flex gap-2.5">
-                    <span className="mt-[7px] size-1 shrink-0 rounded-full bg-line-strong" />
-                    {t}
-                  </li>
-                ))}
-              </ul>
-            </Reveal>
-            <Reveal delay={180}>
-              <div className="mb-3 inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.12em] text-clay-600 uppercase">
-                <span className="size-1.5 rounded-full bg-viz-bad" /> It does not
-              </div>
-              <ul className="space-y-2.5 text-[13.5px] leading-relaxed text-ink-muted">
-                {[
-                  "Diagnose anything or judge how serious a situation is",
-                  "Recommend a treatment, a procedure or a doctor",
-                  "Approve, reject or guarantee any claim",
-                  "Replace confirming the specifics with your insurer",
-                ].map((t) => (
-                  <li key={t} className="flex gap-2.5">
-                    <span className="mt-[7px] size-1 shrink-0 rounded-full bg-line-strong" />
-                    {t}
-                  </li>
-                ))}
-              </ul>
-            </Reveal>
-          </div>
+          <ul className="grid gap-4 sm:grid-cols-2">
+            {CHECKS.map((c, i) => (
+              <Reveal as="li" key={c.title} delay={i * 90}>
+                <div className="card h-full p-5 sm:p-6">
+                  <span className="grid size-10 place-items-center rounded-xl bg-sage-100 text-sage-700">
+                    <c.Icon className="size-5" />
+                  </span>
+                  <h3 className="mt-4 font-display text-xl text-ink">{c.title}</h3>
+                  <p className="mt-2 text-sm text-ink-muted">{c.body}</p>
+                </div>
+              </Reveal>
+            ))}
+          </ul>
         </div>
       </div>
     </section>
   );
 }
 
-function Footer() {
+function Boundaries() {
+  const does = [
+    "Explain what your policy document appears to say",
+    "Show the exact lines behind every statement",
+    "Compare hospitals on coverage, cost and distance",
+    "Warn you about deadlines and caps before they bite",
+  ];
+  const doesNot = [
+    "Diagnose anything or judge how serious a situation is",
+    "Recommend a treatment, a procedure or a doctor",
+    "Approve, reject or guarantee any claim",
+    "Replace confirming the specifics with your insurer",
+  ];
+
   return (
-    <footer className="mx-auto max-w-[1240px] px-4 py-12 sm:px-6">
-      <ArchRule className="mb-8" />
-      <p className="text-center text-[12px] leading-relaxed text-ink-subtle">
-        Sample policies, hospitals, rates and people in this prototype are
-        synthetic. No real insurer, facility or person is depicted.
-      </p>
-    </footer>
+    <section id="boundaries" className="scroll-mt-28 border-t border-line/70 bg-surface/50">
+      <div className="mx-auto max-w-[1240px] px-4 py-16 sm:px-6 lg:py-20">
+        <Reveal className="max-w-2xl">
+          <h2 className="font-display text-3xl text-ink sm:text-4xl">
+            What this is, and
+            <em className="font-normal text-plum-500 italic"> what it is not.</em>
+          </h2>
+          <p className="mt-3.5 max-w-lg text-base text-ink-muted">
+            The boundary matters more here than in most software, so it is
+            drawn explicitly rather than left to a footer.
+          </p>
+        </Reveal>
+
+        <div className="mt-10 grid gap-4 md:grid-cols-2">
+          <BoundaryList tone="sage" title="It does" items={does} delay={80} />
+          <BoundaryList tone="clay" title="It does not" items={doesNot} delay={160} />
+        </div>
+      </div>
+    </section>
   );
 }
 
-function CheckMark() {
+function BoundaryList({
+  tone,
+  title,
+  items,
+  delay,
+}: {
+  tone: "sage" | "clay";
+  title: string;
+  items: string[];
+  delay: number;
+}) {
+  const sage = tone === "sage";
   return (
-    <svg viewBox="0 0 16 16" className="size-3.5 shrink-0 text-viz-good" fill="currentColor" aria-hidden="true">
-      <path d="M6.2 11.4 3.3 8.5l1.1-1.1 1.8 1.8 4.4-4.4 1.1 1.1z" />
-    </svg>
+    <Reveal delay={delay}>
+      <div className="card h-full p-6">
+        <h3 className={`label flex items-center gap-2 font-sans ${sage ? "!text-sage-700" : "!text-clay-600"}`}>
+          <span className={`size-2 rounded-full ${sage ? "bg-viz-good" : "bg-viz-bad"}`} />
+          {title}
+        </h3>
+        <ul className="mt-4 space-y-3">
+          {items.map((t) => (
+            <li key={t} className="flex gap-3 text-base text-ink-muted">
+              <span
+                className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full ${
+                  sage ? "bg-sage-100 text-sage-700" : "bg-clay-100 text-clay-600"
+                }`}
+                aria-hidden="true"
+              >
+                {sage ? (
+                  <Check className="size-3" />
+                ) : (
+                  <svg viewBox="0 0 16 16" className="size-2.5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                    <path d="m4 4 8 8M12 4l-8 8" />
+                  </svg>
+                )}
+              </span>
+              {t}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </Reveal>
+  );
+}
+
+function FinalCta({ onOwn }: { onOwn: () => void }) {
+  const begin = useBegin();
+  const first = SAMPLE_POLICIES[0];
+  return (
+    <section className="mx-auto max-w-[1240px] px-4 pt-16 sm:px-6 lg:pt-24">
+      <Reveal>
+        <div className="card-verdict px-6 py-12 text-center sm:px-12 sm:py-16">
+          <ArchRule className="mx-auto mb-8 max-w-xs" />
+          <h2 className="mx-auto max-w-2xl font-display text-3xl text-ink sm:text-4xl">
+            Read your cover before you’re at the desk.
+          </h2>
+          <p className="mx-auto mt-4 max-w-lg text-base text-ink-muted">
+            Ten minutes now is worth more than an hour in a corridor. Start with
+            a sample, or bring your own policy.
+          </p>
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <Button size="lg" onClick={() => begin(first.text, first.label, "sample", first.id)}>
+              See it read a real policy <ArrowRight />
+            </Button>
+            <Button size="lg" variant="secondary" onClick={onOwn}>
+              Use my own policy
+            </Button>
+          </div>
+          <p className="mt-6 text-sm text-ink-subtle">
+            Already started?{" "}
+            <Link href="/coverage" className="font-medium text-accent underline decoration-plum-300 underline-offset-2">
+              Go to your coverage
+            </Link>
+          </p>
+        </div>
+      </Reveal>
+    </section>
   );
 }

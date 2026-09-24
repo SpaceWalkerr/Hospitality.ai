@@ -9,6 +9,8 @@ import {
   useRef,
   useState,
 } from "react";
+import { Sheet } from "./ui/Dialog";
+import { Check, Close, Doc } from "./ui/Icons";
 import type { Citation } from "@/lib/types";
 import { useStore } from "@/lib/store";
 
@@ -79,7 +81,7 @@ export function CitationChip({
   if (!citation) {
     return (
       <span
-        className={`inline-flex items-center gap-1 rounded-full border border-line bg-surface-sunk px-2 py-[2px] text-[11px] font-medium text-ink-subtle ${className}`}
+        className={`inline-flex min-h-7 items-center gap-1 rounded-full border border-line bg-surface-sunk px-2.5 text-label font-medium text-ink-subtle ${className}`}
       >
         General guidance
       </span>
@@ -89,7 +91,7 @@ export function CitationChip({
   const v = citation.verification ?? "unverified";
   const ring =
     v === "exact"
-      ? "border-plum-200 bg-plum-50 text-plum-600 hover:bg-plum-100"
+      ? "border-plum-200 bg-plum-50 text-plum-600 hover:border-plum-300 hover:bg-plum-100"
       : v === "fuzzy"
         ? "border-ochre-300/60 bg-ochre-50 text-ochre-700 hover:bg-ochre-100"
         : "border-clay-300/60 bg-clay-50 text-clay-600 hover:bg-clay-100";
@@ -98,17 +100,18 @@ export function CitationChip({
     <button
       type="button"
       onClick={() => open(citation)}
-      className={`group inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[3px] text-[11.5px] leading-none font-medium transition-colors ${ring} ${className}`}
+      aria-haspopup="dialog"
+      className={`group inline-flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 text-label leading-none font-medium transition-[background-color,border-color,transform] duration-150 active:scale-[0.97] ${ring} ${className}`}
     >
-      <svg viewBox="0 0 16 16" className="size-3 shrink-0" fill="currentColor">
-        <path d="M4.4 2.5h5l3.1 3.1v7.9a1 1 0 0 1-1 1h-7.1a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Zm4.7 1.6v2.1h2.1L9.1 4.1Z" />
-      </svg>
+      <Doc className="size-3 shrink-0" />
       {label ?? `Clause ${citation.clause}`}
-      {v !== "exact" && (
-        <span
-          className="ml-0.5 inline-block size-[5px] rounded-full bg-current"
-          aria-label={VERIFICATION_COPY[v].label}
-        />
+      {v === "exact" ? (
+        <span className="sr-only">, {VERIFICATION_COPY.exact.label}</span>
+      ) : (
+        <>
+          <span className="ml-0.5 inline-block size-[5px] rounded-full bg-current" aria-hidden="true" />
+          <span className="sr-only">, {VERIFICATION_COPY[v].label}</span>
+        </>
       )}
     </button>
   );
@@ -124,15 +127,15 @@ function SourceDrawer({
   const { session } = useStore();
   const scrollRef = useRef<HTMLDivElement>(null);
   const markRef = useRef<HTMLDivElement>(null);
-  const [mounted, setMounted] = useState(false);
+  // Keep the last citation while the sheet animates closed.
+  const [shownCitation, setShownCitation] = useState<Citation | null>(citation);
 
   useEffect(() => {
-    if (!citation) {
-      const t = setTimeout(() => setMounted(false), 260);
-      return () => clearTimeout(t);
-    }
+    if (citation) setShownCitation(citation);
+  }, [citation]);
 
-    setMounted(true);
+  useEffect(() => {
+    if (!citation) return;
     // Position the highlight directly rather than relying on scrollIntoView:
     // the sheet is still transitioning, and a smooth scroll started mid-
     // transition lands in the wrong place (or nowhere) often enough to matter.
@@ -153,130 +156,82 @@ function SourceDrawer({
     };
   }, [citation]);
 
-  useEffect(() => {
-    if (!citation) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [citation, onClose]);
-
-  if (!mounted && !citation) return null;
-
+  const c = shownCitation;
   const doc = session.source?.text ?? "";
   const lines = doc.replace(/\r\n?/g, "\n").split("\n");
-  const start = citation?.resolvedLineStart ?? citation?.lineStart ?? 0;
-  const end = citation?.resolvedLineEnd ?? citation?.lineEnd ?? start;
-  const v = citation?.verification ?? "unverified";
+  const start = c?.resolvedLineStart ?? c?.lineStart ?? 0;
+  const end = c?.resolvedLineEnd ?? c?.lineEnd ?? start;
+  const v = c?.verification ?? "unverified";
   const meta = VERIFICATION_COPY[v];
-  const shown = !!citation;
 
   return (
-    <div
-      className="fixed inset-0 z-50"
-      style={{ pointerEvents: shown ? "auto" : "none" }}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Policy source"
-    >
-      <div
-        onClick={onClose}
-        className="absolute inset-0 bg-ink/25 backdrop-blur-[2px] transition-opacity duration-300"
-        style={{ opacity: shown ? 1 : 0 }}
-      />
-      <div
-        className="absolute right-0 bottom-0 flex w-full flex-col bg-surface shadow-[var(--shadow-sheet)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] sm:top-0 sm:h-full sm:w-[min(520px,92vw)] sm:rounded-none"
-        style={{
-          maxHeight: "88vh",
-          borderTopLeftRadius: 18,
-          borderTopRightRadius: 18,
-          transform: shown
-            ? "translate(0,0)"
-            : "var(--drawer-hidden, translateY(102%))",
-        }}
-        data-open={shown}
-      >
-        <style>{`
-          @media (min-width: 640px) {
-            [data-open] { --drawer-hidden: translateX(102%); }
-          }
-        `}</style>
-
-        <header className="flex items-start justify-between gap-4 border-b border-line px-5 pt-5 pb-4">
-          <div className="min-w-0">
-            <div className="text-[11px] font-semibold tracking-[0.16em] text-plum-400 uppercase">
-              Source document
-            </div>
-            <h3 className="mt-1.5 font-display text-[19px] leading-tight text-ink">
-              {citation ? `Clause ${citation.clause}` : ""}
-            </h3>
-            <p className="mt-1 truncate text-[12.5px] text-ink-subtle">
-              {session.source?.name ?? "Policy document"} · lines {start}–{end}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="-mt-1 -mr-1 rounded-full p-2 text-ink-subtle transition-colors hover:bg-surface-sunk hover:text-ink"
-          >
-            <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-              <path d="m4 4 8 8M12 4l-8 8" />
-            </svg>
-          </button>
-        </header>
-
-        <div className="border-b border-line bg-canvas px-5 py-3.5">
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[3px] text-[11.5px] font-medium ${meta.tone}`}
-          >
-            {v === "exact" ? (
-              <svg viewBox="0 0 16 16" className="size-3" fill="currentColor">
-                <path d="M6.2 11.4 3.3 8.5l1.1-1.1 1.8 1.8 4.4-4.4 1.1 1.1z" />
-              </svg>
-            ) : (
-              <span className="inline-block size-[6px] rounded-full bg-current" />
-            )}
-            {meta.label}
-          </span>
-          <p className="mt-2 text-[12.5px] leading-relaxed text-ink-muted">{meta.detail}</p>
+    <Sheet open={!!citation} onClose={onClose} label={c ? `Source for clause ${c.clause}` : "Policy source"}>
+      <header className="flex items-start justify-between gap-4 border-b border-line px-5 pt-4 pb-4 sm:pt-5">
+        <div className="min-w-0">
+          <div className="label !text-plum-400">Source document</div>
+          <h2 className="mt-1.5 font-display text-2xl leading-tight text-ink">
+            {c ? `Clause ${c.clause}` : ""}
+          </h2>
+          <p className="mt-1 truncate text-sm text-ink-subtle">
+            {session.source?.name ?? "Policy document"} · lines {start}–{end}
+          </p>
         </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close source"
+          className="-mt-1 -mr-1 flex size-10 items-center justify-center rounded-full text-ink-subtle transition-colors hover:bg-surface-sunk hover:text-ink"
+        >
+          <Close />
+        </button>
+      </header>
 
-        <div ref={scrollRef} className="relative min-h-0 flex-1 overflow-y-auto px-2 py-3">
-          <div className="font-mono text-[12px] leading-[1.65]">
-            {lines.map((line, i) => {
-              const n = i + 1;
-              const hit = n >= start && n <= end;
-              return (
-                <div
-                  key={n}
-                  ref={hit && n === start ? markRef : undefined}
-                  className={`flex gap-3 rounded px-3 py-[1px] ${
-                    hit ? "bg-plum-100/80 text-ink" : "text-ink-muted/75"
-                  }`}
-                >
-                  <span
-                    className={`tnum w-9 shrink-0 text-right select-none ${
-                      hit ? "text-plum-400" : "text-ink-subtle/50"
-                    }`}
-                  >
-                    {n}
-                  </span>
-                  <span className="whitespace-pre-wrap">{line || " "}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <footer className="border-t border-line bg-canvas px-5 py-3.5 text-[12px] leading-relaxed text-ink-subtle">
-          Highlighted lines are the passage this claim was drawn from. Coverage is
-          decided by your insurer on the final bill, not by this summary.
-        </footer>
+      <div className="border-b border-line bg-canvas px-5 py-3.5">
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-label font-medium ${meta.tone}`}
+        >
+          {v === "exact" ? (
+            <Check className="size-3" />
+          ) : (
+            <span className="inline-block size-[6px] rounded-full bg-current" aria-hidden="true" />
+          )}
+          {meta.label}
+        </span>
+        <p className="mt-2 text-sm text-ink-muted">{meta.detail}</p>
       </div>
-    </div>
+
+      <div ref={scrollRef} className="relative min-h-0 flex-1 overflow-y-auto px-2 py-3" tabIndex={0} aria-label="Policy text">
+        <div className="font-mono text-xs leading-[1.65]">
+          {lines.map((line, i) => {
+            const n = i + 1;
+            const hit = n >= start && n <= end;
+            return (
+              <div
+                key={n}
+                ref={hit && n === start ? markRef : undefined}
+                className={`flex gap-3 rounded px-3 py-[1px] ${
+                  hit ? "bg-plum-100 text-ink" : "text-ink-muted"
+                }`}
+              >
+                <span
+                  className={`tnum w-9 shrink-0 text-right select-none ${
+                    hit ? "text-plum-500" : "text-ink-subtle/70"
+                  }`}
+                  aria-hidden="true"
+                >
+                  {n}
+                </span>
+                <span className="whitespace-pre-wrap">{line || " "}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <footer className="border-t border-line bg-canvas px-5 py-3.5 pb-[calc(14px+env(safe-area-inset-bottom))] text-xs text-ink-subtle">
+        Highlighted lines are the passage this claim was drawn from. Coverage is
+        decided by your insurer on the final bill, not by this summary.
+      </footer>
+    </Sheet>
   );
 }

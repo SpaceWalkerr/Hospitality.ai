@@ -1,28 +1,31 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { AppShell } from "@/components/AppShell";
 import { CitationChip } from "@/components/Citation";
-import { SparkIcon } from "@/components/AppShell";
 import { CountUp, Reveal } from "@/components/motion";
-import { ArchRule } from "@/components/Ornament";
+import { SectionNav, StickyNext } from "@/components/PageNav";
 import {
-  ErrorNote,
+  ButtonLink,
+  Dot,
+  ErrorState,
   Expander,
+  Eyebrow,
   HeroFigure,
   Pill,
   SectionHeading,
   Skeleton,
-  StatTile,
+  SkeletonCard,
   StatusLine,
   StreamingProse,
 } from "@/components/ui";
+import type { Tone } from "@/components/ui";
+import { ArrowRight, Check, Spark } from "@/components/ui/Icons";
 import { useNdjson, useStore } from "@/lib/store";
 import { inr } from "@/lib/services/matchingEngine";
 import { formatDate } from "@/lib/format";
-import type { Exclusion, NormalizedPolicy } from "@/lib/types";
+import type { Citation, Exclusion, NormalizedPolicy } from "@/lib/types";
 
 export default function CoveragePage() {
   return (
@@ -38,15 +41,8 @@ function Coverage() {
   const { run, running, status, error } = useNdjson();
   const started = useRef(false);
 
-  useEffect(() => {
-    if (!hydrated) return;
-    if (!session.source) {
-      router.replace("/");
-      return;
-    }
-    if (session.policy || started.current) return;
-    started.current = true;
-
+  const parse = useCallback(() => {
+    if (!session.source) return;
     const sampleId = session.sampleId ?? undefined;
     void run(
       "/api/policy/parse",
@@ -61,7 +57,18 @@ function Coverage() {
         onDelta: (full) => update({ brief: full }),
       },
     );
-  }, [hydrated, session.source, session.policy, session.sampleId, router, run, update]);
+  }, [run, session.sampleId, session.source, update]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (!session.source) {
+      router.replace("/");
+      return;
+    }
+    if (session.policy || started.current) return;
+    started.current = true;
+    parse();
+  }, [hydrated, session.source, session.policy, router, parse]);
 
   if (!hydrated || (!session.policy && !error)) {
     return <ParsingPanel status={status} />;
@@ -70,123 +77,131 @@ function Coverage() {
   if (error && !session.policy) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
-        <ErrorNote message={error} />
-        <Link
-          href="/"
-          className="mt-5 inline-flex rounded-full border border-line px-4 py-2 text-[13px] font-medium text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
-        >
-          Choose a different policy
-        </Link>
+        <ErrorState
+          title="We couldn’t read this policy"
+          message={error}
+          onRetry={parse}
+          secondary={
+            <ButtonLink href="/#start" variant="secondary" size="sm">
+              Choose a different policy
+            </ButtonLink>
+          }
+        />
       </div>
     );
   }
 
   const policy = session.policy!;
 
+  const sections = [
+    { id: "summary", label: "Summary" },
+    { id: "room", label: "Room" },
+    { id: "costs", label: "What you pay" },
+    policy.subLimits.length ? { id: "sublimits", label: "Sub-limits" } : null,
+    policy.exclusions.length ? { id: "exclusions", label: "Not covered" } : null,
+    policy.networkHospitals.length ? { id: "network", label: "Network" } : null,
+    policy.gaps.length ? { id: "gaps", label: "Unknowns" } : null,
+  ].filter((s): s is { id: string; label: string } => !!s);
+
   return (
-    <div className="mx-auto max-w-[1240px] px-4 pt-7 pb-10 sm:px-6">
-      <PolicyHeader policy={policy} demo={config?.demo ?? false} />
+    <div className="mx-auto max-w-[1240px] px-4 pt-6 pb-10 sm:px-6 sm:pt-8">
+      <Verdict policy={policy} demo={config?.demo ?? false} />
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile
-          tone={policy.roomEligibility.resolvedDailyCap ? "ochre" : "sage"}
-          label="Room limit / day"
-          value={
-            policy.roomEligibility.resolvedDailyCap
-              ? inr(policy.roomEligibility.resolvedDailyCap)
-              : policy.roomEligibility.eligibleCategory
-          }
-          sub={
-            policy.roomEligibility.capMode === "percent_of_sum_insured_per_day"
-              ? `${policy.roomEligibility.capValue}% of sum insured, per day`
-              : policy.roomEligibility.capMode === "category_capped"
-                ? "Entitlement is by ward category, not a rupee cap"
-                : "Flat daily limit, not linked to sum insured"
-          }
-          footer={<CitationChip citation={policy.roomEligibility.citation} />}
-        />
-        <StatTile
-          tone="neutral"
-          label="ICU limit / day"
-          value={
-            policy.roomEligibility.resolvedIcuDailyCap
-              ? inr(policy.roomEligibility.resolvedIcuDailyCap)
-              : "Included"
-          }
-          sub={
-            policy.roomEligibility.resolvedIcuDailyCap
-              ? "Applies to ICU, CCU and HDU beds"
-              : "No separate ICU cap stated in the document"
-          }
-        />
-        <StatTile
-          tone={policy.coPay ? "ochre" : "sage"}
-          label="Co-payment"
-          value={policy.coPay ? `${policy.coPay.percent}%` : "None"}
-          sub={
-            policy.coPay
-              ? policy.coPay.appliesTo
-              : "No patient share comes off an admissible claim."
-          }
-          footer={
-            policy.coPay ? <CitationChip citation={policy.coPay.citation} /> : undefined
-          }
-        />
-        <StatTile
-          tone={policy.reimbursement.outOfNetworkAllowed ? "ochre" : "clay"}
-          label="Outside the network"
-          value={
-            policy.reimbursement.outOfNetworkAllowed
-              ? `${policy.reimbursement.payablePercent ?? 100}% back`
-              : "Not payable"
-          }
-          sub={
-            policy.reimbursement.claimWindowDays
-              ? `Claim papers due within ${policy.reimbursement.claimWindowDays} days of discharge`
-              : "No reimbursement route in this cover"
-          }
-          footer={<CitationChip citation={policy.reimbursement.citation} />}
-        />
-      </div>
+      <SectionNav sections={sections} label="Coverage sections" className="mt-6" />
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-[1.35fr_1fr]">
-        <BriefCard
-          brief={session.brief}
-          streaming={running}
-          status={status}
-          demo={config?.demo ?? false}
-        />
-        <SummaryPoints points={session.points} loading={running && !session.points.length} />
-      </div>
+      <section id="summary" className="mt-8 scroll-mt-40">
+        <h2 className="sr-only">Summary</h2>
+        <div className="grid gap-5 lg:grid-cols-[1.35fr_1fr]">
+          <BriefCard
+            brief={session.brief}
+            streaming={running}
+            status={status}
+            demo={config?.demo ?? false}
+          />
+          <SummaryPoints points={session.points} loading={running && !session.points.length} />
+        </div>
+      </section>
 
       <Reveal><RoomSection policy={policy} /></Reveal>
       <Reveal><CostSection policy={policy} /></Reveal>
       <Reveal><SubLimitSection policy={policy} /></Reveal>
       <Reveal><ExclusionSection policy={policy} /></Reveal>
       <Reveal><NetworkSection policy={policy} /></Reveal>
-      <Reveal>
-        <GapSection policy={policy} />
-      </Reveal>
-
-      <ArchRule className="mt-14" />
+      <Reveal><GapSection policy={policy} /></Reveal>
 
       <Reveal>
         <NextStep />
       </Reveal>
+
+      <StickyNext showAfter="verdict" hideWhen="next-step">
+        <span className="min-w-0 truncate text-sm text-ink-muted">
+          <span className="hidden sm:inline">Next: </span>
+          <span className="font-medium text-ink">find hospitals this cover fits</span>
+        </span>
+        <ButtonLink href="/hospitals" size="sm">
+          Find hospitals <ArrowRight className="size-3.5" />
+        </ButtonLink>
+      </StickyNext>
     </div>
   );
 }
 
-/* ---------------- pieces ---------------- */
+/* ---------------- verdict ---------------- */
 
-function PolicyHeader({
-  policy,
-  demo,
-}: {
-  policy: NormalizedPolicy;
-  demo: boolean;
-}) {
-  const kindTone =
+type Fact = {
+  label: string;
+  value: string;
+  sub: string;
+  tone: Tone;
+  citation?: Citation;
+};
+
+function keyFacts(policy: NormalizedPolicy): Fact[] {
+  const re = policy.roomEligibility;
+  return [
+    {
+      label: "Room limit / day",
+      value: re.resolvedDailyCap ? inr(re.resolvedDailyCap) : re.eligibleCategory,
+      sub:
+        re.capMode === "percent_of_sum_insured_per_day"
+          ? `${re.capValue}% of sum insured, per day`
+          : re.capMode === "category_capped"
+            ? "Entitlement is by ward category"
+            : "Flat daily limit",
+      tone: re.resolvedDailyCap ? "ochre" : "sage",
+      citation: re.citation,
+    },
+    {
+      label: "ICU limit / day",
+      value: re.resolvedIcuDailyCap ? inr(re.resolvedIcuDailyCap) : "Included",
+      sub: re.resolvedIcuDailyCap
+        ? "ICU, CCU and HDU beds"
+        : "No separate ICU cap stated",
+      tone: "neutral",
+    },
+    {
+      label: "Co-payment",
+      value: policy.coPay ? `${policy.coPay.percent}%` : "None",
+      sub: policy.coPay ? policy.coPay.appliesTo : "No patient share on admissible claims",
+      tone: policy.coPay ? "ochre" : "sage",
+      citation: policy.coPay?.citation,
+    },
+    {
+      label: "Outside the network",
+      value: policy.reimbursement.outOfNetworkAllowed
+        ? `${policy.reimbursement.payablePercent ?? 100}% back`
+        : "Not payable",
+      sub: policy.reimbursement.claimWindowDays
+        ? `Claim within ${policy.reimbursement.claimWindowDays} days of discharge`
+        : "No reimbursement route",
+      tone: policy.reimbursement.outOfNetworkAllowed ? "ochre" : "clay",
+      citation: policy.reimbursement.citation,
+    },
+  ];
+}
+
+function Verdict({ policy, demo }: { policy: NormalizedPolicy; demo: boolean }) {
+  const kindTone: Tone =
     policy.kind === "government" ? "sage" : policy.kind === "employer" ? "ochre" : "plum";
   const kindLabel = {
     government: "Government scheme",
@@ -195,75 +210,113 @@ function PolicyHeader({
     topup: "Top-up cover",
   }[policy.kind];
 
+  const pd = policy.roomEligibility.proportionateDeduction;
+
   return (
-    <div className="animate-rise card p-5 sm:p-6">
-      <div className="grid gap-7 lg:grid-cols-[1.35fr_auto] lg:items-start lg:gap-10">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <section id="verdict" aria-labelledby="policy-title" className="animate-rise card-verdict">
+      <div className="grid gap-8 p-5 sm:p-7 lg:grid-cols-[1fr_auto] lg:gap-12">
         <div className="min-w-0">
-          <div className="text-[11px] font-semibold tracking-[0.14em] text-plum-400 uppercase">
-            {policy.insurer}
+          <div className="flex flex-wrap items-center gap-2">
+            <Pill tone={kindTone}>{kindLabel}</Pill>
+            {policy.schemes.map((s) => (
+              <Pill key={s} tone="sage">
+                {s}
+              </Pill>
+            ))}
+            <Pill tone={policy.confidence === "high" ? "sage" : "ochre"}>
+              <span className="capitalize">{policy.confidence}</span> confidence
+            </Pill>
           </div>
-          <h1 className="mt-1.5 font-display text-[26px] leading-tight text-ink sm:text-[31px]">
+          <div className="label mt-5 !text-plum-400">{policy.insurer}</div>
+          <h1 id="policy-title" className="mt-1.5 font-display text-3xl text-ink sm:text-4xl">
             {policy.planName}
           </h1>
-          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[12.5px] text-ink-muted">
+          <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink-muted">
             {policy.policyHolder && (
-              <span>
-                <span className="text-ink-subtle">Holder</span> {policy.policyHolder}
-              </span>
+              <div className="flex gap-1.5">
+                <dt className="text-ink-subtle">Holder</dt>
+                <dd>{policy.policyHolder}</dd>
+              </div>
             )}
             {policy.policyNumber && (
-              <span className="tnum">
-                <span className="text-ink-subtle">No.</span> {policy.policyNumber}
-              </span>
+              <div className="tnum flex gap-1.5">
+                <dt className="text-ink-subtle">No.</dt>
+                <dd>{policy.policyNumber}</dd>
+              </div>
             )}
             {policy.validTo && (
-              <span>
-                <span className="text-ink-subtle">Valid to</span>{" "}
-                {formatDate(policy.validTo)}
-              </span>
+              <div className="flex gap-1.5">
+                <dt className="text-ink-subtle">Valid to</dt>
+                <dd>{formatDate(policy.validTo)}</dd>
+              </div>
             )}
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Pill tone={kindTone as "plum"}>{kindLabel}</Pill>
-          {policy.schemes.map((s) => (
-            <Pill key={s} tone="sage">
-              {s}
-            </Pill>
-          ))}
-          <Pill tone={policy.confidence === "high" ? "sage" : "ochre"}>
-            <span className="capitalize">{policy.confidence}</span> confidence
-          </Pill>
-        </div>
-      </div>
+          </dl>
 
-        {/* The one number this screen leads with. */}
-        <div className="border-t border-line pt-6 lg:w-[286px] lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10">
+          {/* The one sentence that matters most at the admission desk. */}
+          <p
+            className={`mt-5 flex max-w-2xl items-start gap-3 rounded-2xl border p-3.5 text-base ${
+              pd
+                ? "border-clay-300/60 bg-clay-50 text-clay-600"
+                : "border-sage-300/60 bg-sage-50 text-sage-700"
+            }`}
+          >
+            <Dot tone={pd ? "clay" : "sage"} className="mt-2" />
+            <span>
+              <strong className="font-semibold">
+                {pd ? "Watch the room rate." : "A better room won’t shrink the rest."}
+              </strong>{" "}
+              {pd
+                ? "Taking a room above your limit reduces what the policy pays on every other charge, not just the room."
+                : "Proportionate deduction is waived: above the room limit you pay only the room difference."}
+            </span>
+          </p>
+        </div>
+
+        <div className="border-t border-line pt-6 lg:w-[290px] lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10">
           <HeroFigure
             label="Sum insured"
-            value={
-              <CountUp
-                value={policy.sumInsured.amount}
-                format={(n) => inr(n)}
-              />
-            }
+            value={<CountUp value={policy.sumInsured.amount} format={(n) => inr(n)} />}
             caption={policy.sumInsured.basis}
           >
             <CitationChip citation={policy.sumInsured.citation} />
           </HeroFigure>
         </div>
       </div>
+
+      <dl className="grid grid-cols-1 border-t border-line bg-surface/60 sm:grid-cols-2 lg:grid-cols-4">
+        {keyFacts(policy).map((f, i) => (
+          <div
+            key={f.label}
+            className={`flex flex-col p-5 sm:p-6 ${i > 0 ? "border-t border-line sm:border-t-0" : ""} ${
+              i % 2 === 1 ? "sm:border-l" : ""
+            } ${i >= 2 ? "sm:border-t lg:border-t-0" : ""} ${i > 0 ? "lg:border-l" : ""} border-line`}
+          >
+            <dt className="label flex items-center gap-2">
+              <Dot tone={f.tone} /> {f.label}
+            </dt>
+            <dd className="figure mt-2.5 text-2xl leading-none text-ink">{f.value}</dd>
+            <dd className="mt-2 text-sm text-ink-muted">{f.sub}</dd>
+            {f.citation && (
+              <dd className="mt-auto pt-3">
+                <CitationChip citation={f.citation} />
+              </dd>
+            )}
+          </div>
+        ))}
+      </dl>
+
       {demo && (
-        <p className="mt-4 border-t border-line pt-3.5 text-[12.5px] leading-relaxed text-ink-subtle">
+        <p className="border-t border-line px-5 py-3 text-xs text-ink-subtle sm:px-7">
           Demo Mode: this extraction is a stored fixture rather than a live
           model call. Its citations are verified against the source document by
           the same routine used on live output.
         </p>
       )}
-    </div>
+    </section>
   );
 }
+
+/* ---------------- summary ---------------- */
 
 function BriefCard({
   brief,
@@ -277,24 +330,28 @@ function BriefCard({
   demo: boolean;
 }) {
   return (
-    <div className="card relative overflow-hidden p-5 sm:p-6">
-      <div className="absolute inset-y-0 left-0 w-[3px] bg-plum-300" />
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-plum-400 uppercase">
-          <SparkIcon className="size-3.5" />
-          In plain language
-        </div>
+    <div className="card p-5 sm:p-7">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <Eyebrow>
+          <Spark /> In plain language
+        </Eyebrow>
         {streaming && <StatusLine status={status} />}
       </div>
-      <StreamingProse text={brief} streaming={streaming} />
-      <p className="mt-5 border-t border-line pt-3.5 text-[12px] leading-relaxed text-ink-subtle">
-        Written by {demo ? "a stored fixture" : "Claude"} from the clauses above.
-        It is a reading of your document, not a decision on your claim — confirm
-        anything that affects money with your insurer or TPA.
+      <StreamingProse text={brief} streaming={streaming} className="max-w-[62ch]" />
+      <p className="mt-6 border-t border-line pt-4 text-xs text-ink-subtle">
+        Written by {demo ? "a stored fixture" : "Claude"} from the clauses in
+        your document. It is a reading of your document, not a decision on your
+        claim — confirm anything that affects money with your insurer or TPA.
       </p>
     </div>
   );
 }
+
+const POINT_META = {
+  good: { tone: "sage", label: "Works for you" },
+  watch: { tone: "ochre", label: "Watch this" },
+  limit: { tone: "clay", label: "Hard limit" },
+} as const;
 
 function SummaryPoints({
   points,
@@ -307,104 +364,70 @@ function SummaryPoints({
     return (
       <div className="space-y-3">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="card space-y-2 p-4">
-            <Skeleton className="h-3.5 w-1/2" />
-            <Skeleton className="h-3 w-full" />
-            <Skeleton className="h-3 w-3/4" />
-          </div>
+          <SkeletonCard key={i} />
         ))}
       </div>
     );
   }
 
-  const meta = {
-    good: { tone: "sage", label: "Works for you", bar: "bg-sage-500" },
-    watch: { tone: "ochre", label: "Watch this", bar: "bg-ochre-500" },
-    limit: { tone: "clay", label: "Hard limit", bar: "bg-clay-500" },
-  } as const;
-
   return (
-    <div className="stagger space-y-3">
+    <ul className="stagger space-y-3">
       {points.map((p, i) => {
-        const m = meta[p.tone];
+        const m = POINT_META[p.tone];
         return (
-          <div
-            key={i}
-            style={{ ["--i" as string]: i }}
-            className="card relative overflow-hidden py-4 pr-4 pl-5"
-          >
-            <div className={`absolute inset-y-0 left-0 w-[3px] ${m.bar}`} />
+          <li key={i} style={{ ["--i" as string]: i }} className="card p-4 sm:p-5">
             <div className="flex items-start justify-between gap-3">
-              <h3 className="font-display text-[16.5px] leading-snug text-ink">
-                {p.heading}
-              </h3>
+              <h3 className="font-display text-lg text-ink">{p.heading}</h3>
               <Pill tone={m.tone}>{m.label}</Pill>
             </div>
-            <p className="mt-1.5 text-[13.5px] leading-relaxed text-ink-muted">
-              {p.body}
-            </p>
-          </div>
+            <p className="mt-1.5 text-sm text-ink-muted">{p.body}</p>
+          </li>
         );
       })}
-    </div>
+    </ul>
   );
 }
 
+/* ---------------- sections ---------------- */
+
 function RoomSection({ policy }: { policy: NormalizedPolicy }) {
   const re = policy.roomEligibility;
+  const pd = re.proportionateDeduction;
   return (
-    <section className="mt-12">
+    <section id="room" className="mt-16 scroll-mt-40">
       <SectionHeading
         eyebrow="The decision at the desk"
         title="Room eligibility"
         caption="What you are entitled to occupy, and what happens if you take something better."
       />
-      <div className="grid gap-3 md:grid-cols-[1fr_1.15fr]">
-        <div className="card p-5">
-          <div className="text-[11px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
-            Your entitlement
-          </div>
-          <div className="mt-2 font-display text-[24px] leading-tight text-ink">
-            {re.eligibleCategory}
-          </div>
+      <div className="grid gap-4 md:grid-cols-[1fr_1.15fr]">
+        <div className="card p-5 sm:p-6">
+          <div className="label">Your entitlement</div>
+          <div className="mt-2 font-display text-2xl text-ink">{re.eligibleCategory}</div>
           {re.resolvedDailyCap != null && (
-            <div className="figure mt-1 text-[14px] font-normal text-ink-muted">
+            <div className="figure mt-1 text-base font-normal text-ink-muted">
               up to {inr(re.resolvedDailyCap)} a day
             </div>
           )}
-          <p className="mt-3.5 text-[13.5px] leading-relaxed text-ink-muted">
-            {re.notes}
-          </p>
+          <p className="mt-3.5 text-base text-ink-muted">{re.notes}</p>
           <div className="mt-4">
             <CitationChip citation={re.citation} />
           </div>
         </div>
 
         <div
-          className={`card relative overflow-hidden p-5 ${
-            re.proportionateDeduction ? "border-clay-300/60" : "border-sage-300/60"
+          className={`rounded-[var(--radius-card)] border p-5 sm:p-6 ${
+            pd ? "border-clay-300/60 bg-clay-50" : "border-sage-300/60 bg-sage-50"
           }`}
         >
-          <div
-            className={`absolute inset-x-0 top-0 h-[3px] ${
-              re.proportionateDeduction ? "bg-clay-500" : "bg-sage-500"
-            }`}
-          />
-          <div className="flex items-center gap-2">
-            <span
-              className={`inline-block size-2 rounded-full ${
-                re.proportionateDeduction ? "bg-clay-500" : "bg-sage-500"
-              }`}
-            />
-            <div className="text-[11px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
-              Proportionate deduction
-            </div>
+          <div className="label flex items-center gap-2">
+            <Dot tone={pd ? "clay" : "sage"} /> Proportionate deduction
           </div>
-          <div className="mt-2 font-display text-[22px] leading-tight text-ink">
-            {re.proportionateDeduction ? "Applies to this policy" : "Waived under this policy"}
+          <div className={`mt-2 font-display text-2xl ${pd ? "text-clay-600" : "text-sage-700"}`}>
+            {pd ? "Applies to this policy" : "Waived under this policy"}
           </div>
-          <p className="mt-3 text-[13.5px] leading-relaxed text-ink-muted">
-            {re.proportionateDeduction ? (
+          <p className="mt-3 text-base text-ink-muted">
+            {pd ? (
               <>
                 If you take a room above the limit, the policy pays a reduced
                 share of <em>every</em> associated charge — surgeon, theatre,
@@ -432,8 +455,8 @@ function CostSection({ policy }: { policy: NormalizedPolicy }) {
     label: string;
     value: string;
     detail: string;
-    tone: "sage" | "ochre" | "clay" | "neutral";
-    citation: NormalizedPolicy["sumInsured"]["citation"] | null;
+    tone: Tone;
+    citation: Citation | null;
   }[] = [
     {
       label: "Deductible",
@@ -466,26 +489,22 @@ function CostSection({ policy }: { policy: NormalizedPolicy }) {
   ];
 
   return (
-    <section className="mt-12">
+    <section id="costs" className="mt-16 scroll-mt-40">
       <SectionHeading
         eyebrow="Money"
         title="What you will bear yourself"
         caption="Deductions and conditions applied before the policy pays anything."
       />
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-3">
         {items.map((it) => (
-          <div key={it.label} className="card p-4">
-            <div className="text-[11px] font-semibold tracking-[0.13em] text-ink-subtle uppercase">
-              {it.label}
+          <div key={it.label} className="card flex flex-col p-5">
+            <div className="label flex items-center gap-2">
+              <Dot tone={it.tone} /> {it.label}
             </div>
-            <div className="figure mt-1.5 text-[22px] leading-none text-ink">
-              {it.value}
-            </div>
-            <p className="mt-2 text-[12.5px] leading-relaxed text-ink-muted">
-              {it.detail}
-            </p>
+            <div className="figure mt-2.5 text-2xl leading-none text-ink">{it.value}</div>
+            <p className="mt-2.5 text-sm text-ink-muted">{it.detail}</p>
             {it.citation && (
-              <div className="mt-3">
+              <div className="mt-auto pt-3">
                 <CitationChip citation={it.citation} />
               </div>
             )}
@@ -499,28 +518,24 @@ function CostSection({ policy }: { policy: NormalizedPolicy }) {
 function SubLimitSection({ policy }: { policy: NormalizedPolicy }) {
   if (!policy.subLimits.length) return null;
   return (
-    <section className="mt-12">
+    <section id="sublimits" className="mt-16 scroll-mt-40">
       <SectionHeading
         eyebrow="Caps inside the cap"
         title="Sub-limits"
         caption="Benefits with their own ceiling. These bite even when the sum insured is untouched."
       />
-      <div className="card divide-y divide-line overflow-hidden">
+      <ul className="card divide-y divide-line overflow-hidden">
         {policy.subLimits.map((s, i) => (
-          <div
+          <li
             key={i}
-            className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3.5 transition-colors hover:bg-canvas"
+            className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-5 py-4 transition-colors hover:bg-canvas"
           >
-            <div className="min-w-0 flex-1">
-              <div className="text-[14px] font-medium text-ink">{s.item}</div>
-            </div>
-            <div className="figure text-[13.5px] text-ochre-700">
-              {s.limit}
-            </div>
+            <div className="min-w-0 flex-1 text-base font-medium text-ink">{s.item}</div>
+            <div className="figure text-base text-ochre-700">{s.limit}</div>
             <CitationChip citation={s.citation} />
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </section>
   );
 }
@@ -531,13 +546,13 @@ function ExclusionSection({ policy }: { policy: NormalizedPolicy }) {
   if (!policy.exclusions.length) return null;
 
   return (
-    <section className="mt-12">
+    <section id="exclusions" className="mt-16 scroll-mt-40">
       <SectionHeading
         eyebrow="Not covered"
         title="Exclusions and waiting periods"
         caption="A waiting period lapses with time. A permanent exclusion does not."
       />
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         <ExclusionColumn
           title="Waiting periods"
           caption="Covered eventually — but not yet."
@@ -567,19 +582,20 @@ function ExclusionColumn({
   items: Exclusion[];
 }) {
   if (!items.length) return null;
-  const bar = tone === "ochre" ? "bg-ochre-500" : "bg-clay-500";
   return (
-    <div className="card relative overflow-hidden">
-      <div className={`absolute inset-x-0 top-0 h-[3px] ${bar}`} />
-      <div className="border-b border-line px-4 pt-4 pb-3">
-        <h3 className="font-display text-[17px] leading-snug text-ink">{title}</h3>
-        <p className="mt-0.5 text-[12.5px] text-ink-subtle">{caption}</p>
+    <div className="card overflow-hidden">
+      <div className="flex items-start gap-3 border-b border-line px-5 pt-5 pb-4">
+        <Dot tone={tone} className="mt-2.5" />
+        <div>
+          <h3 className="font-display text-xl text-ink">{title}</h3>
+          <p className="mt-0.5 text-sm text-ink-subtle">{caption}</p>
+        </div>
       </div>
-      <div className="divide-y divide-line">
+      <ul className="divide-y divide-line">
         {items.map((e, i) => (
-          <div key={i} className="px-4 py-3.5">
+          <li key={i} className="px-5 py-4">
             <div className="flex flex-wrap items-start justify-between gap-2">
-              <div className="text-[14px] font-medium text-ink">{e.item}</div>
+              <div className="text-base font-medium text-ink">{e.item}</div>
               {e.waitingMonths != null && (
                 <Pill tone={tone}>
                   {e.waitingMonths >= 12
@@ -588,15 +604,13 @@ function ExclusionColumn({
                 </Pill>
               )}
             </div>
-            <p className="mt-1 text-[12.5px] leading-relaxed text-ink-muted">
-              {e.detail}
-            </p>
+            <p className="mt-1 text-sm text-ink-muted">{e.detail}</p>
             <div className="mt-2.5">
               <CitationChip citation={e.citation} />
             </div>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
@@ -604,36 +618,34 @@ function ExclusionColumn({
 function NetworkSection({ policy }: { policy: NormalizedPolicy }) {
   if (!policy.networkHospitals.length) return null;
   return (
-    <section className="mt-12">
+    <section id="network" className="mt-16 scroll-mt-40">
       <SectionHeading
         eyebrow="Where cashless works"
         title="Network hospitals named in the document"
         caption="Empanelment changes without notice — treat this as a starting point and confirm before admission."
         right={
-          <Link
-            href="/hospitals"
-            className="hidden rounded-full border border-line px-3.5 py-1.5 text-[12.5px] font-medium text-ink-muted transition-colors hover:border-plum-200 hover:text-plum-600 sm:inline-block"
-          >
+          <ButtonLink href="/hospitals" variant="secondary" size="sm" className="hidden sm:inline-flex">
             Compare all hospitals
-          </Link>
+          </ButtonLink>
         }
       />
-      <div className="flex flex-wrap gap-2">
+      <ul className="flex flex-wrap gap-2">
         {policy.networkHospitals.map((h, i) => (
-          <span
+          <li
             key={i}
-            className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-[13px] text-ink"
+            className="inline-flex min-h-9 items-center gap-2 rounded-full border border-line bg-surface px-3.5 text-sm text-ink"
           >
-            <span
-              className={`inline-block size-1.5 rounded-full ${
-                h.cashless ? "bg-sage-500" : "bg-ochre-500"
-              }`}
-            />
+            <Dot tone={h.cashless ? "sage" : "ochre"} />
             {h.name}
             <span className="text-ink-subtle">{h.city}</span>
-          </span>
+            <span className="sr-only">{h.cashless ? "(cashless)" : "(reimbursement)"}</span>
+          </li>
         ))}
-      </div>
+      </ul>
+      <p className="mt-3 flex items-center gap-4 text-xs text-ink-subtle">
+        <span className="inline-flex items-center gap-1.5"><Dot tone="sage" /> Cashless</span>
+        <span className="inline-flex items-center gap-1.5"><Dot tone="ochre" /> Reimbursement</span>
+      </p>
     </section>
   );
 }
@@ -641,28 +653,25 @@ function NetworkSection({ policy }: { policy: NormalizedPolicy }) {
 function GapSection({ policy }: { policy: NormalizedPolicy }) {
   if (!policy.gaps.length) return null;
   return (
-    <section className="mt-12">
-      <div className="rounded-[14px] border border-dashed border-line-strong bg-surface/70 p-5">
-        <Expander
-          label={`What this document does not say (${policy.gaps.length})`}
-          openLabel="Hide the gaps"
-        >
-          <ul className="mt-3 space-y-2">
-            {policy.gaps.map((g, i) => (
-              <li
-                key={i}
-                className="flex items-start gap-2.5 text-[13.5px] leading-relaxed text-ink-muted"
-              >
-                <span className="mt-[7px] size-1.5 shrink-0 rounded-full bg-line-strong" />
-                {g}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-4 text-[12.5px] leading-relaxed text-ink-subtle">
-            These are questions the document leaves open. Nothing has been
-            guessed to fill them — ask your insurer directly.
-          </p>
-        </Expander>
+    <section id="gaps" className="mt-16 scroll-mt-40">
+      <div className="rounded-[var(--radius-card)] border border-dashed border-line-strong bg-surface/70 p-5 sm:p-6">
+        <h2 className="font-display text-xl text-ink">What this document doesn’t say</h2>
+        <p className="mt-1 text-sm text-ink-muted">
+          {policy.gaps.length} question{policy.gaps.length === 1 ? "" : "s"} the
+          document leaves open. Nothing has been guessed to fill them.
+        </p>
+        <div className="mt-3">
+          <Expander label="Show what to ask your insurer" openLabel="Hide">
+            <ul className="mt-3 space-y-2">
+              {policy.gaps.map((g, i) => (
+                <li key={i} className="flex items-start gap-2.5 text-base text-ink-muted">
+                  <span className="mt-[9px] size-1.5 shrink-0 rounded-full bg-line-strong" />
+                  {g}
+                </li>
+              ))}
+            </ul>
+          </Expander>
+        </div>
       </div>
     </section>
   );
@@ -670,86 +679,90 @@ function GapSection({ policy }: { policy: NormalizedPolicy }) {
 
 function NextStep() {
   return (
-    <div className="mt-12 flex flex-col items-start justify-between gap-4 rounded-[16px] border border-plum-200 bg-plum-50/60 p-5 sm:flex-row sm:items-center sm:p-6">
+    <div
+      id="next-step"
+      className="card-verdict mt-16 flex flex-col items-start justify-between gap-5 p-6 sm:flex-row sm:items-center sm:p-8"
+    >
       <div>
-        <h3 className="font-display text-[20px] leading-snug text-ink">
+        <Eyebrow>Step two</Eyebrow>
+        <h2 className="mt-2 font-display text-2xl text-ink sm:text-3xl">
           Now find a hospital this cover actually fits
-        </h3>
-        <p className="mt-1 max-w-xl text-[13.5px] leading-relaxed text-ink-muted">
-          We will cross-reference these terms against room rates and empanelment,
-          and show you what each option leaves you paying.
+        </h2>
+        <p className="mt-2 max-w-xl text-base text-ink-muted">
+          We cross-reference these terms against room rates and empanelment,
+          and show what each option leaves you paying.
         </p>
       </div>
-      <Link
-        href="/hospitals"
-        className="inline-flex shrink-0 items-center gap-2 rounded-full bg-plum-500 px-5 py-2.5 text-[13.5px] font-medium text-white transition-colors hover:bg-plum-600"
-      >
-        Find hospitals
-        <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" />
-        </svg>
-      </Link>
+      <ButtonLink href="/hospitals" size="lg" className="w-full shrink-0 sm:w-auto">
+        Find hospitals <ArrowRight />
+      </ButtonLink>
     </div>
   );
 }
+
+/* ---------------- loading ---------------- */
+
+const PARSE_STEPS = [
+  "Reading the document",
+  "Extracting clauses",
+  "Verifying citations against source",
+  "Writing your summary",
+];
 
 function ParsingPanel({
   status,
 }: {
   status: { label: string; step: number; of: number } | null;
 }) {
-  const steps = [
-    "Reading the document",
-    "Extracting clauses",
-    "Verifying citations against source",
-    "Writing your summary",
-  ];
   const current = status?.step ?? 1;
+  const of = status?.of ?? PARSE_STEPS.length;
+  const pct = Math.min(100, Math.max(6, ((current - 0.5) / of) * 100));
 
   return (
-    <div className="mx-auto max-w-[1240px] px-4 pt-10 pb-16 sm:px-6">
-      <div className="card mx-auto max-w-xl p-6">
-        <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-plum-400 uppercase">
-          <SparkIcon className="size-3.5" />
-          Policy Understanding Agent
-        </div>
-        <h2 className="mt-3 font-display text-[23px] leading-snug text-ink">
+    <div className="mx-auto max-w-[1240px] px-4 pt-8 pb-16 sm:px-6 sm:pt-10">
+      <div className="card-verdict mx-auto max-w-xl p-6 sm:p-7" role="status" aria-live="polite">
+        <Eyebrow>
+          <Spark /> Policy Understanding Agent
+        </Eyebrow>
+        <h1 className="mt-3 font-display text-2xl text-ink sm:text-3xl">
           Reading your policy
-        </h2>
-        <p className="mt-1.5 text-[13.5px] leading-relaxed text-ink-muted">
+        </h1>
+        <p className="mt-2 text-base text-ink-muted">
           Extracting the clauses that decide what you pay, then checking every
           quote back against the document itself.
         </p>
 
+        <div className="mt-6 h-1.5 overflow-hidden rounded-full bg-plum-100">
+          <div
+            className="h-full rounded-full bg-accent transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+
         <ol className="mt-6 space-y-3.5">
-          {steps.map((label, i) => {
+          {PARSE_STEPS.map((label, i) => {
             const n = i + 1;
             const state = n < current ? "done" : n === current ? "active" : "todo";
             return (
               <li key={label} className="flex items-center gap-3">
                 <span
-                  className={`flex size-5 shrink-0 items-center justify-center rounded-full border text-[10px] font-semibold transition-colors ${
+                  className={`grid size-6 shrink-0 place-items-center rounded-full border text-label font-semibold transition-colors ${
                     state === "done"
-                      ? "border-sage-500 bg-sage-500 text-white"
+                      ? "border-sage-500 bg-sage-500 text-white dark:text-canvas"
                       : state === "active"
                         ? "animate-breathe border-plum-400 bg-plum-100 text-plum-600"
                         : "border-line text-ink-subtle"
                   }`}
                 >
-                  {state === "done" ? (
-                    <svg viewBox="0 0 16 16" className="size-3" fill="currentColor">
-                      <path d="M6.2 11.4 3.3 8.5l1.1-1.1 1.8 1.8 4.4-4.4 1.1 1.1z" />
-                    </svg>
-                  ) : (
-                    n
-                  )}
+                  {state === "done" ? <Check className="size-3.5" /> : n}
                 </span>
                 <span
-                  className={`text-[13.5px] transition-colors ${
+                  className={`text-base transition-colors ${
                     state === "todo" ? "text-ink-subtle" : "font-medium text-ink"
                   }`}
                 >
                   {label}
+                  {state === "done" && <span className="sr-only"> (done)</span>}
                 </span>
               </li>
             );
@@ -757,7 +770,7 @@ function ParsingPanel({
         </ol>
       </div>
 
-      <div className="mx-auto mt-6 grid max-w-xl gap-3 sm:grid-cols-2">
+      <div className="mx-auto mt-6 grid max-w-xl gap-3 sm:grid-cols-2" aria-hidden="true">
         {[0, 1, 2, 3].map((i) => (
           <div key={i} className="card space-y-2.5 p-4">
             <Skeleton className="h-2.5 w-1/3" />

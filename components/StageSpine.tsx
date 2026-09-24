@@ -84,18 +84,21 @@ export function StageSpine({
             const active = s === stage;
             const seen = visited.includes(s);
             return (
+              // The label below is the focusable control; the node is a
+              // mouse-only duplicate so each stage is a single Tab stop.
               <button
                 key={s}
                 type="button"
+                tabIndex={-1}
+                aria-hidden="true"
                 onClick={() => onSelect(s)}
-                aria-current={active ? "step" : undefined}
                 className="group absolute -translate-x-1/2 -translate-y-1/2"
                 style={{ left: `${(p.x / 1000) * 100}%`, top: `${(p.y / 104) * 100}%` }}
               >
                 <span
-                  className={`flex size-7 items-center justify-center rounded-full border-2 text-[11px] font-semibold transition-all duration-300 ${
+                  className={`flex size-7 items-center justify-center rounded-full border-2 text-label font-semibold transition-all duration-300 ${
                     active
-                      ? "scale-110 border-plum-500 bg-plum-500 text-white shadow-[0_4px_14px_-4px_rgba(91,62,104,.55)]"
+                      ? "scale-110 border-accent bg-accent text-accent-fg shadow-[var(--shadow-glow)]"
                       : done
                         ? "border-plum-400 bg-plum-100 text-plum-600"
                         : seen
@@ -118,17 +121,18 @@ export function StageSpine({
                 key={`${s}-label`}
                 type="button"
                 onClick={() => onSelect(s)}
+                aria-current={active ? "step" : undefined}
                 className="group absolute bottom-0 w-[150px] -translate-x-1/2 px-1 text-center"
                 style={{ left: `${(p.x / 1000) * 100}%` }}
               >
                 <span
-                  className={`block font-display text-[15.5px] leading-tight transition-colors ${
+                  className={`block font-display text-base leading-tight transition-colors ${
                     active ? "text-ink" : "text-ink-muted group-hover:text-ink"
                   }`}
                 >
                   {STAGE_META[s].label}
                 </span>
-                <span className="mt-0.5 block text-[11.5px] leading-tight text-ink-subtle">
+                <span className="mt-0.5 block text-label leading-tight text-ink-subtle">
                   {STAGE_META[s].caption}
                 </span>
               </button>
@@ -161,9 +165,9 @@ export function StageSpine({
                 className="flex w-full items-center gap-3.5 py-2 text-left"
               >
                 <span
-                  className={`relative z-10 flex size-7 shrink-0 items-center justify-center rounded-full border-2 text-[11px] font-semibold transition-all duration-300 ${
+                  className={`relative z-10 flex size-7 shrink-0 items-center justify-center rounded-full border-2 text-label font-semibold transition-all duration-300 ${
                     active
-                      ? "border-plum-500 bg-plum-500 text-white"
+                      ? "border-accent bg-accent text-accent-fg"
                       : done
                         ? "border-plum-400 bg-plum-100 text-plum-600"
                         : seen
@@ -175,13 +179,13 @@ export function StageSpine({
                 </span>
                 <span className="min-w-0">
                   <span
-                    className={`block font-display text-[16px] leading-tight ${
+                    className={`block font-display text-base leading-tight ${
                       active ? "text-ink" : "text-ink-muted"
                     }`}
                   >
                     {STAGE_META[s].label}
                   </span>
-                  <span className="block text-[11.5px] text-ink-subtle">
+                  <span className="block text-label text-ink-subtle">
                     {STAGE_META[s].caption}
                   </span>
                 </span>

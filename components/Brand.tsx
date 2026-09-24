@@ -27,11 +27,11 @@ export function Wordmark({ compact = false }: { compact?: boolean }) {
   return (
     <span className="inline-flex items-center gap-2.5">
       <Mark className="h-[22px] w-[22px] text-plum-500" />
-      <span className="font-display text-[19px] leading-none font-medium tracking-[-0.02em] text-ink">
+      <span className="font-display text-xl leading-none font-medium tracking-[-0.02em] text-ink">
         Hospitality
       </span>
       {!compact && (
-        <span className="hidden text-[11px] leading-none font-medium tracking-[0.14em] text-ink-subtle uppercase sm:inline">
+        <span className="hidden text-label leading-none font-medium tracking-[0.14em] text-ink-subtle uppercase sm:inline">
           Care navigation
         </span>
       )}
