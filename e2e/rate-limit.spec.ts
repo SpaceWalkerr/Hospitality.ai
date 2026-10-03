@@ -158,6 +158,7 @@ test.describe("Rate limiting over HTTP", () => {
     await page.goto("/");
     await page.getByRole("button", { name: "Use my own policy" }).first().click();
     await page.getByRole("tab", { name: "Upload PDF" }).click();
+    await page.getByLabel(/I agree that Hospitality may read this document/).check();
     await page.locator("input[type=file]").setInputFiles({
       name: "policy.pdf",
       mimeType: "application/pdf",

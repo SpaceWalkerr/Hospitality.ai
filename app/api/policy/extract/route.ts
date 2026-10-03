@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { CONSENT_VERSION } from "@/lib/legal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,6 +29,13 @@ type TextItem = { str: string; transform: number[]; width: number };
 export async function POST(req: NextRequest) {
   const form = await req.formData();
   const file = form.get("file");
+
+  if (form.get("consent") !== CONSENT_VERSION) {
+    return NextResponse.json(
+      { error: "Please tick the box to confirm you agree to how your document is used." },
+      { status: 400 },
+    );
+  }
 
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "No file was uploaded." }, { status: 400 });

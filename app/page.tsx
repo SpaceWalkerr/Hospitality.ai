@@ -32,6 +32,8 @@ import {
 import { SAMPLE_POLICIES } from "@/lib/data/samplePolicies";
 import { listHospitals } from "@/lib/data/hospitals";
 import { useStore } from "@/lib/store";
+import { Consent } from "@/components/Consent";
+import { CONSENT_VERSION } from "@/lib/legal";
 
 type Tab = "sample" | "paste" | "upload";
 type Origin = "sample" | "paste" | "pdf";
@@ -48,10 +50,11 @@ function useBegin() {
   const router = useRouter();
   const { update } = useStore();
   return useCallback(
-    (text: string, name: string, origin: Origin, sampleId?: string) => {
+    (text: string, name: string, origin: Origin, sampleId?: string, consent?: string) => {
       update({
         source: { text, name, origin },
         sampleId: sampleId ?? null,
+        consent: consent ?? null,
         policy: null,
         points: [],
         brief: "",
@@ -208,8 +211,8 @@ function Start({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
           <ul className="mt-6 space-y-3 text-sm text-ink-muted">
             <li className="flex gap-3">
               <Lock className="mt-0.5 size-5 shrink-0 text-plum-400" />
-              Read on the server and never stored. Your session lives only in
-              this browser tab.
+              Never stored by Hospitality. Your session lives only in this
+              browser tab, and you can delete it at any time.
             </li>
             <li className="flex gap-3">
               <Doc className="mt-0.5 size-5 shrink-0 text-plum-400" />
@@ -237,6 +240,7 @@ function StartCard({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [agreed, setAgreed] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const prefix = "start";
 
@@ -251,15 +255,20 @@ function StartCard({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
       setError("That doesn’t look like a PDF. Choose a .pdf file, or paste the text instead.");
       return;
     }
+    if (!agreed) {
+      setError("Tick the box above to confirm you agree to how your document is used.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
       const form = new FormData();
       form.append("file", file);
+      form.append("consent", CONSENT_VERSION);
       const res = await fetch("/api/policy/extract", { method: "POST", body: form });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "That file could not be read.");
-      begin(data.text, data.name, "pdf");
+      begin(data.text, data.name, "pdf", undefined, CONSENT_VERSION);
     } catch (e) {
       setError(e instanceof Error ? e.message : "That file could not be read.");
       setBusy(false);
@@ -318,6 +327,7 @@ function StartCard({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
 
         {tab === "paste" && (
           <TabPanel id="paste" prefix={prefix} className="space-y-3">
+            <Consent id="consent-paste" checked={agreed} onChange={setAgreed} demo={config?.demo ?? true} />
             <label htmlFor="paste-input" className="label block">
               Policy text
             </label>
@@ -346,8 +356,9 @@ function StartCard({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
                 )}
               </span>
               <Button
-                disabled={chars < MIN_CHARS}
-                onClick={() => begin(pasted, "Pasted policy text", "paste")}
+                disabled={chars < MIN_CHARS || !agreed}
+                title={!agreed ? "Tick the box above to continue" : undefined}
+                onClick={() => begin(pasted, "Pasted policy text", "paste", undefined, CONSENT_VERSION)}
               >
                 Read this policy <ArrowRight className="size-3.5" />
               </Button>
@@ -357,9 +368,10 @@ function StartCard({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
 
         {tab === "upload" && (
           <TabPanel id="upload" prefix={prefix} className="space-y-3">
+            <Consent id="consent-upload" checked={agreed} onChange={setAgreed} demo={config?.demo ?? true} />
             <button
               type="button"
-              disabled={busy}
+              disabled={busy || !agreed}
               onClick={() => fileRef.current?.click()}
               onDragOver={(e) => {
                 e.preventDefault();
@@ -372,7 +384,7 @@ function StartCard({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
                 const f = e.dataTransfer.files?.[0];
                 if (f) void onUpload(f);
               }}
-              className={`flex w-full flex-col items-center gap-3 rounded-[14px] border-2 border-dashed px-4 py-10 transition-colors disabled:cursor-progress ${
+              className={`flex w-full flex-col items-center gap-3 rounded-[14px] border-2 border-dashed px-4 py-10 transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
                 dragging
                   ? "border-accent bg-accent-soft"
                   : "border-line-strong bg-canvas hover:border-plum-300 hover:bg-plum-50"
@@ -396,7 +408,9 @@ function StartCard({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
                     {dragging ? "Drop it here" : "Choose a PDF or drag it here"}
                   </span>
                   <span className="text-xs text-ink-subtle">
-                    Text-based PDFs up to 12 MB. Scanned images won’t read.
+                    {agreed
+                      ? "Text-based PDFs up to 12 MB. Scanned images won’t read."
+                      : "Tick the box above first."}
                   </span>
                 </>
               )}

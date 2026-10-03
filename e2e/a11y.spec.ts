@@ -31,6 +31,22 @@ for (const scheme of ["light", "dark"] as const) {
       await scan(page);
     });
 
+    test("privacy notice and terms", async ({ page }) => {
+      await page.goto("/privacy");
+      await expect(page.getByRole("heading", { level: 1, name: "Privacy notice" })).toBeVisible();
+      await scan(page);
+      await page.goto("/terms");
+      await expect(page.getByRole("heading", { level: 1, name: "Terms of use" })).toBeVisible();
+      await scan(page);
+    });
+
+    test("delete-my-data dialog", async ({ page }) => {
+      await page.goto("/");
+      await page.getByRole("button", { name: "Delete my data" }).click();
+      await expect(page.getByRole("dialog")).toBeVisible();
+      await scan(page);
+    });
+
     test("coverage, hospitals and journey", async ({ page }) => {
       await startWithHospital(page);
       await page.goto("/coverage");

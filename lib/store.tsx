@@ -31,12 +31,26 @@ import type {
 
 const KEY = "hospitality.session.v1";
 
+/**
+ * Set once the reader has asked to delete their data. A stream still running
+ * on the page keeps calling update(); without this, a write landing between
+ * the wipe and the reload would put the session straight back, and session
+ * storage survives a same-tab reload. Never cleared: the page is about to go.
+ */
+let persistenceStopped = false;
+
+export function stopPersisting() {
+  persistenceStopped = true;
+}
+
 export type Chosen = { hospitalId: string; roomCategory: string } | null;
 
 type Session = {
   source: SourceDoc | null;
   /** Set when the source is one of the bundled samples; drives Demo Mode. */
   sampleId: string | null;
+  /** CONSENT_VERSION agreed to before reading the person's own document. */
+  consent: string | null;
   policy: NormalizedPolicy | null;
   points: PolicySummaryPoint[];
   brief: string;
@@ -52,6 +66,7 @@ type Session = {
 const EMPTY: Session = {
   source: null,
   sampleId: null,
+  consent: null,
   policy: null,
   points: [],
   brief: "",
@@ -115,7 +130,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         ...(typeof patch === "function" ? patch(prev) : patch),
       };
       try {
-        sessionStorage.setItem(KEY, JSON.stringify(next));
+        if (!persistenceStopped) sessionStorage.setItem(KEY, JSON.stringify(next));
       } catch {
         /* quota or private mode — state still works for this page */
       }

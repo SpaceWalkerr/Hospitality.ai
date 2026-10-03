@@ -48,7 +48,7 @@ function Coverage() {
       "/api/policy/parse",
       sampleId
         ? { sampleId }
-        : { text: session.source.text, name: session.source.name },
+        : { text: session.source.text, name: session.source.name, consent: session.consent },
       {
         onEvent: (e) => {
           if (e.type === "policy") update({ policy: e.policy });
@@ -57,7 +57,7 @@ function Coverage() {
         onDelta: (full) => update({ brief: full }),
       },
     );
-  }, [run, session.sampleId, session.source, update]);
+  }, [run, session.consent, session.sampleId, session.source, update]);
 
   useEffect(() => {
     if (!hydrated) return;

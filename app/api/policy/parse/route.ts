@@ -3,6 +3,7 @@ import { MAX_DOCUMENT_CHARS, isDemoMode } from "@/lib/services/anthropic";
 import { extractPolicy, streamPolicyBrief } from "@/lib/services/policyAgent";
 import { demoBundle, isDemoSupported } from "@/lib/services/demoFixtures";
 import { getSamplePolicy } from "@/lib/data/samplePolicies";
+import { CONSENT_VERSION } from "@/lib/legal";
 import { beat, ndjsonStream } from "@/lib/services/stream";
 
 export const runtime = "nodejs";
@@ -20,6 +21,8 @@ export async function POST(req: NextRequest) {
     sampleId?: string;
     text?: string;
     name?: string;
+    /** CONSENT_VERSION the person agreed to. Required for their own documents. */
+    consent?: string;
   };
 
   const sample = body.sampleId ? getSamplePolicy(body.sampleId) : undefined;
@@ -37,6 +40,17 @@ export async function POST(req: NextRequest) {
         type: "error",
         message:
           "This document is longer than a single health policy usually is. Please upload just the policy schedule and its terms and conditions.",
+      });
+      return;
+    }
+
+    // Someone's own document is personal data; the samples are not. Enforced
+    // here rather than only in the UI, which can be skipped.
+    if (!sample && body.consent !== CONSENT_VERSION) {
+      emit({
+        type: "error",
+        message:
+          "Please go back and confirm you agree to how your document is used before we read it.",
       });
       return;
     }

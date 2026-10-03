@@ -9,6 +9,7 @@ import { ArchRule } from "./Ornament";
 import { useToast } from "./ui/Toast";
 import { Check, Pin, Route, Shield, Spark } from "./ui/Icons";
 import { useStore } from "@/lib/store";
+import { DeleteDataButton, DeletedNotice } from "./DeleteData";
 
 /** The three screens of the flow, in order. */
 const STEPS = [
@@ -134,6 +135,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <DisclosureStrip />
       </header>
+      <DeletedNotice />
 
       <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
         <div className="animate-page">{children}</div>
@@ -266,8 +268,13 @@ function Footer({ onStartOver }: { onStartOver?: () => void }) {
 
           <FooterCol title="Privacy">
             <li className="text-sm text-ink-muted">
-              Documents are read on the server and never stored. Your session
-              lives only in this browser tab.
+              Never stored by Hospitality. Your session lives only in this
+              browser tab.
+            </li>
+            <FooterLink href="/privacy">Privacy notice</FooterLink>
+            <FooterLink href="/terms">Terms of use</FooterLink>
+            <li>
+              <DeleteDataButton />
             </li>
           </FooterCol>
         </div>

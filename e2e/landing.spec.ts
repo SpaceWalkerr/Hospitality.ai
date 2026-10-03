@@ -53,6 +53,9 @@ test.describe("Landing", () => {
 
     await input.fill("Policy clause text. ".repeat(20));
     await expect(page.getByText("Ready", { exact: true })).toBeVisible();
+    // Enough text is not enough: their own document needs consent first.
+    await expect(submit).toBeDisabled();
+    await page.getByLabel(/I agree that Hospitality may read this document/).check();
     await expect(submit).toBeEnabled();
   });
 

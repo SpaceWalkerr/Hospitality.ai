@@ -605,3 +605,10 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Lists and emphasis inside the privacy notice and terms. */
+.legal-prose ul { list-style: disc; padding-left: 1.25rem; }
+.legal-prose ul > li + li { margin-top: 0.4rem; }
+.legal-prose strong { color: var(--color-ink); font-weight: 600; }
+.legal-prose a { text-decoration: underline; text-underline-offset: 2px; }
+.legal-prose a:hover { color: var(--color-accent, var(--color-plum-500)); }

@@ -160,6 +160,40 @@ cancels the model call, so abandoned sessions stop costing money. Documents
 over 250,000 characters and questions over 600 are refused before any call is
 made.
 
+### Privacy and consent
+
+Hospitality reads health insurance documents, which are personal data under
+India's Digital Personal Data Protection Act, 2023. What is built:
+
+- **Consent before reading.** Paste and upload are locked behind an unticked
+  box that says where the text goes — including, in Live mode, that it is sent
+  to Anthropic to be read. The server enforces it too: `/api/policy/parse` and
+  `/api/policy/extract` refuse someone's own document unless the request
+  carries the current `CONSENT_VERSION` (`lib/legal.ts`). Bump the version
+  whenever the consent wording changes in substance. The bundled samples need
+  no consent; they are not anyone's personal data.
+- **A privacy notice (`/privacy`) and terms (`/terms`)**, written to match what
+  the code actually does, and marked on the page as drafts under legal review.
+- **Delete my data**, in every page's footer: removes every key the app wrote
+  to the browser and reloads, with no Undo. Persistence stops first, so an
+  answer still streaming in cannot write the session back.
+- **Nothing to retain.** No database, no cookies, no analytics. Document
+  contents never reach the server logs: model failures log the error, and
+  schema mismatches log field paths and codes only.
+
+**Still yours to do before launch:**
+
+1. Set `NEXT_PUBLIC_PRIVACY_EMAIL` — the Act requires a published contact for
+   privacy requests and grievances. Until it is set, `/privacy` says one will be
+   published before launch.
+2. Have a lawyer review `/privacy`, `/terms` and the consent wording
+   (`components/Consent.tsx`), and confirm where Hospitality sits relative to
+   IRDAI's rules on insurance intermediaries — explaining a policy someone
+   already holds is generally treated differently from recommending one to buy,
+   but that is a lawyer's call, not ours.
+3. Read Anthropic's commercial terms and data-retention policy for API inputs,
+   since the privacy notice points readers there.
+
 ### Rate limiting
 
 Every `/api/*` request passes through `middleware.ts`, which rejects excess

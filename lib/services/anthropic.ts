@@ -116,7 +116,12 @@ export async function createStructured<S extends z.ZodType>(
 
   const result = schema.safeParse(json);
   if (!result.success) {
-    console.error(`[hospitality] ${what}: answer did not match the schema`, result.error.issues.slice(0, 5));
+    // Paths and codes only: an issue can carry the offending value, and the
+    // privacy notice promises document contents never reach our logs.
+    const where = result.error.issues
+      .slice(0, 5)
+      .map((i) => `${i.path.join(".") || "(root)"}: ${i.code}`);
+    console.error(`[hospitality] ${what}: answer did not match the schema`, where);
     throw new UserFacingError(unreadable(what));
   }
   return result.data;
