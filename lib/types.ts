@@ -185,6 +185,28 @@ export type Empanelment = {
   tariffDiscountPct: number;
 };
 
+/**
+ * Where a hospital's figures came from. "illustrative" is invented demo data
+ * and is labelled as such on screen; anything else carries the date it was
+ * last checked, because empanelment and tariffs change.
+ */
+export type DataSource =
+  | { kind: "illustrative" }
+  | {
+      kind: "insurer_network_list" | "hospital_provided" | "government_portal";
+      /** ISO date the figures were last checked. */
+      asOf: string;
+      /** Where they came from, if public. */
+      reference?: string;
+    };
+
+export type Insurer = {
+  id: string;
+  name: string;
+  /** Lower-case words that identify this insurer's documents. */
+  matchTerms: string[];
+};
+
 export type Hospital = {
   id: string;
   name: string;
@@ -198,7 +220,8 @@ export type Hospital = {
   emergency24x7: boolean;
   icuBeds: number;
   totalBeds: number;
-  rating: number;
+  /** Out of 5. Null when there is no trustworthy rating to show. */
+  rating: number | null;
   /** Median hours from admission request to bed allotment. */
   admissionWaitHours: number;
   schemes: string[];
@@ -206,6 +229,7 @@ export type Hospital = {
   empanelment: Record<string, Empanelment>;
   rooms: Room[];
   packages: ProcedurePackage[];
+  source: DataSource;
 };
 
 export type Locality = {

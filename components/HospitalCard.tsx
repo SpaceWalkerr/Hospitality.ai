@@ -1,6 +1,7 @@
 "use client";
 
 import { CapMeter } from "./CapMeter";
+import { SourceLabel } from "./SourceLabel";
 import { Button, Expander, Pill } from "./ui";
 import { Check } from "./ui/Icons";
 import { inr } from "@/lib/format";
@@ -70,12 +71,16 @@ export function HospitalCard({
               <span className="figure font-normal">{match.distanceKm} km</span>
               <span aria-hidden="true" className="text-line-strong">·</span>
               <span>{TYPE_LABEL[h.type]}</span>
-              <span aria-hidden="true" className="text-line-strong">·</span>
-              <span className="figure font-normal">
-                {h.rating.toFixed(1)}
-                <span aria-hidden="true">★</span>
-                <span className="sr-only"> out of 5</span>
-              </span>
+              {h.rating != null && (
+                <>
+                  <span aria-hidden="true" className="text-line-strong">·</span>
+                  <span className="figure font-normal">
+                    {h.rating.toFixed(1)}
+                    <span aria-hidden="true">★</span>
+                    <span className="sr-only"> out of 5</span>
+                  </span>
+                </>
+              )}
             </p>
             <div className="mt-2.5 flex flex-wrap gap-1.5">
               {match.inNetwork ? (
@@ -89,6 +94,7 @@ export function HospitalCard({
               {h.emergency24x7 && <Pill>24×7 emergency</Pill>}
               {h.accreditation[0] && <Pill>{h.accreditation[0]}</Pill>}
               {h.schemes.includes("PM-JAY") && <Pill tone="sage">PM-JAY</Pill>}
+              <SourceLabel source={h.source} />
             </div>
           </div>
         </div>

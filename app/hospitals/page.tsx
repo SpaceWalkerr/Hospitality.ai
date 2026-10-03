@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { HospitalCard } from "@/components/HospitalCard";
 import { TradeOffPlot } from "@/components/viz/TradeOffPlot";
+import { IllustrativeNotice, SourceLabel } from "@/components/SourceLabel";
 import { Reveal } from "@/components/motion";
 import {
   Button,
@@ -164,6 +165,9 @@ export default function HospitalsPage() {
           eyebrow={`${policy.insurer} · ${inr(policy.sumInsured.amount)} cover`}
           title="Hospitals your policy actually fits"
           caption="Ranked by coverage, cost and distance. What you'd pay is shown next to each one."
+        />
+        <IllustrativeNotice
+          show={session.matches.some((m) => m.hospital.source.kind === "illustrative")}
         />
 
         <CaseBar
@@ -411,6 +415,7 @@ function TopMatch({
             )}
             {m.specialtyMatch && <Pill tone="plum">Treats this</Pill>}
             {m.hospital.emergency24x7 && <Pill>24×7 emergency</Pill>}
+            <SourceLabel source={m.hospital.source} />
           </div>
 
           <ul className="mt-5 space-y-2">

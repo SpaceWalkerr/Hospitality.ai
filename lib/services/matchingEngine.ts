@@ -356,8 +356,12 @@ export function rankHospitals(
       });
     }
 
-    const quality = Math.round(6 * Math.max(0, (p.hospital.rating - 3.4) / 1.3));
-    breakdown.push({ label: `Rated ${p.hospital.rating.toFixed(1)}`, points: quality });
+    // An unrated hospital scores neither for nor against: no rating is not a
+    // bad rating, and inventing one would be worse.
+    if (p.hospital.rating != null) {
+      const quality = Math.round(6 * Math.max(0, (p.hospital.rating - 3.4) / 1.3));
+      breakdown.push({ label: `Rated ${p.hospital.rating.toFixed(1)}`, points: quality });
+    }
 
     if (p.bestRoom && p.bestRoom.room.bedsAvailable === 0) {
       breakdown.push({ label: "No beds free in that category", points: -15 });

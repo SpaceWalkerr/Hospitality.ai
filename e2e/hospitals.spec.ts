@@ -78,3 +78,15 @@ test.describe("Hospitals", () => {
     await expect(page.getByRole("list", { name: "Ranked hospitals" }).getByRole("article")).toHaveCount(14);
   });
 });
+
+test.describe("Data provenance", () => {
+  test("illustrative hospitals are labelled as such, on the list and every card", async ({ page }) => {
+    await startWithSample(page);
+    await page.goto("/hospitals");
+    await expect(page.getByRole("note").filter({ hasText: "These hospitals are illustrative" })).toBeVisible();
+    // The top match is its own panel, not a card — it needs the label most.
+    await expect(page.locator("#top-match").getByText("Illustrative data", { exact: true })).toBeVisible();
+    const cards = page.locator("article").filter({ hasText: "Illustrative data" });
+    expect(await cards.count()).toBeGreaterThan(5);
+  });
+});

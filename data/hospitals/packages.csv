@@ -1,0 +1,52 @@
+hospital_id,procedure,est_cost,scheme_rate
+sanjeevani-jayanagar,Angioplasty (single stent),245000,128000
+sanjeevani-jayanagar,Appendectomy (laparoscopic),68000,32000
+sanjeevani-jayanagar,Caesarean delivery,82000,34000
+sanjeevani-jayanagar,Cataract surgery (phaco + IOL),42000,16000
+sanjeevani-jayanagar,Dialysis (per session),3200,1500
+kaveri-whitefield,Angioplasty (single stent),385000,
+kaveri-whitefield,CABG (bypass surgery),520000,
+kaveri-whitefield,Appendectomy (laparoscopic),138000,
+kaveri-whitefield,Knee replacement (unilateral),420000,
+kaveri-whitefield,Stroke thrombolysis + ICU,340000,
+vasavi-rajajinagar,Angioplasty (single stent),268000,
+vasavi-rajajinagar,CABG (bypass surgery),395000,
+vasavi-rajajinagar,Pacemaker implantation,210000,
+vasavi-rajajinagar,Coronary angiography,24000,
+nandi-hebbal,Stroke thrombolysis + ICU,295000,
+nandi-hebbal,Knee replacement (unilateral),340000,
+nandi-hebbal,Appendectomy (laparoscopic),112000,
+nandi-hebbal,Spine decompression,285000,
+aloysius-shivajinagar,Appendectomy (laparoscopic),48000,32000
+aloysius-shivajinagar,Caesarean delivery,52000,34000
+aloysius-shivajinagar,Cataract surgery (phaco + IOL),26000,16000
+aloysius-shivajinagar,Dialysis (per session),1800,1500
+prakruthi-malleshwaram,Caesarean delivery,118000,
+prakruthi-malleshwaram,Normal delivery,62000,
+prakruthi-malleshwaram,Hysterectomy (laparoscopic),165000,
+chinmaya-indiranagar,Appendectomy (laparoscopic),84000,
+chinmaya-indiranagar,Angioplasty (single stent),232000,
+chinmaya-indiranagar,Gall bladder removal,92000,
+chinmaya-indiranagar,Knee replacement (unilateral),265000,
+tarangini-banashankari,Appendectomy (laparoscopic),58000,32000
+tarangini-banashankari,Cataract surgery (phaco + IOL),32000,16000
+tarangini-banashankari,Knee replacement (unilateral),195000,90000
+tarangini-banashankari,Dialysis (per session),2200,1500
+sirsi-chamarajpet,Stroke thrombolysis + ICU,98000,78000
+sirsi-chamarajpet,Appendectomy (laparoscopic),34000,32000
+sirsi-chamarajpet,Fracture fixation (femur),62000,45000
+bggh-chamarajpet,Caesarean delivery,18000,34000
+bggh-chamarajpet,Appendectomy (laparoscopic),22000,32000
+bggh-chamarajpet,Dialysis (per session),900,1500
+bggh-chamarajpet,Cataract surgery (phaco + IOL),9000,16000
+hosahalli-peenya,Normal delivery,6000,14000
+hosahalli-peenya,Appendectomy (laparoscopic),19000,32000
+vanivilas-krmarket,Caesarean delivery,14000,34000
+vanivilas-krmarket,Normal delivery,5000,14000
+meenakshi-koramangala,Knee replacement (unilateral),385000,
+meenakshi-koramangala,Spine decompression,315000,
+meenakshi-koramangala,Fracture fixation (femur),168000,
+meenakshi-koramangala,Arthroscopy (knee),128000,
+ashwini-sadashivanagar,Stroke thrombolysis + ICU,365000,
+ashwini-sadashivanagar,Craniotomy (tumour excision),610000,
+ashwini-sadashivanagar,Spine decompression,340000,

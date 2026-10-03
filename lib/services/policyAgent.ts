@@ -1,4 +1,5 @@
 import * as z from "zod/v4";
+import { listInsurers } from "@/lib/data/hospitals";
 import type {
   Citation,
   NormalizedPolicy,
@@ -386,22 +387,14 @@ function resolveCap(
 }
 
 /**
- * Maps a free-text insurer name onto the ids used by the hospital dataset.
- * A real deployment would resolve this against an insurer registry.
+ * Maps a free-text insurer name onto the ids used by the hospital dataset,
+ * using the match terms in data/hospitals/insurers.csv.
  */
 function inferInsurerId(insurer: string, planName: string): string {
   const hay = `${insurer} ${planName}`.toLowerCase();
-  if (hay.includes("meridian")) return "meridian";
-  if (hay.includes("ridgeway") || hay.includes("nexora")) return "ridgeway";
-  if (
-    hay.includes("pm-jay") ||
-    hay.includes("pmjay") ||
-    hay.includes("ayushman") ||
-    hay.includes("national health authority")
-  ) {
-    return "pmjay";
-  }
-  return "unknown";
+  // Match terms come from data/hospitals/insurers.csv, so onboarding a new
+  // insurer is a spreadsheet row rather than a code change.
+  return listInsurers().find((i) => i.matchTerms.some((t) => hay.includes(t)))?.id ?? "unknown";
 }
 
 /* ---------------- Plain-language brief (streamed) ---------------- */

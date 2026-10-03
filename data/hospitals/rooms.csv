@@ -1,0 +1,63 @@
+hospital_id,category,rate_per_day,beds_available,amenities
+sanjeevani-jayanagar,General Ward,1800,12,"Shared, 8 beds; Attendant stool"
+sanjeevani-jayanagar,Twin Sharing,3600,6,2 beds; A/C; Attached bath
+sanjeevani-jayanagar,Single Private,4900,4,A/C; TV; Attendant bed; Attached bath
+sanjeevani-jayanagar,Deluxe,8200,2,Sofa-bed; Mini fridge; Meal service
+sanjeevani-jayanagar,HDU,7500,5,Step-down monitoring; 1:2 nursing
+sanjeevani-jayanagar,ICU,12500,7,Ventilator ready; 1:1 nursing
+kaveri-whitefield,Twin Sharing,7500,8,2 beds; A/C; Attached bath
+kaveri-whitefield,Single Private,11500,11,A/C; Smart TV; Attendant recliner; Room service
+kaveri-whitefield,Deluxe,17000,5,Lounge area; Dedicated attendant meals
+kaveri-whitefield,Suite,26000,2,Separate living room; Kitchenette
+kaveri-whitefield,HDU,14000,14,Step-down monitoring
+kaveri-whitefield,ICU,24000,19,ECMO capable; 24x7 intensivist
+vasavi-rajajinagar,Twin Sharing,4800,5,2 beds; A/C
+vasavi-rajajinagar,Single Private,7200,6,A/C; TV; Attendant bed
+vasavi-rajajinagar,Deluxe,11500,3,Recliner; Meal service
+vasavi-rajajinagar,HDU,9500,9,Cardiac step-down
+vasavi-rajajinagar,ICU,18500,12,Cardiac ICU; IABP capable
+nandi-hebbal,Twin Sharing,5600,7,2 beds; A/C
+nandi-hebbal,Single Private,8800,9,A/C; TV; Attendant bed
+nandi-hebbal,Deluxe,13500,4,Lounge chair; Meal service
+nandi-hebbal,HDU,11000,10,Neuro step-down
+nandi-hebbal,ICU,21000,16,Neuro ICU; 24x7 intensivist
+aloysius-shivajinagar,General Ward,900,20,"Shared, 10 beds"
+aloysius-shivajinagar,Twin Sharing,2400,9,2 beds; Fan; Shared bath
+aloysius-shivajinagar,Single Private,3800,5,A/C; Attached bath
+aloysius-shivajinagar,HDU,5500,4,Step-down monitoring
+aloysius-shivajinagar,ICU,9800,6,Ventilator ready
+prakruthi-malleshwaram,Twin Sharing,4200,4,2 beds; A/C
+prakruthi-malleshwaram,Single Private,6800,8,A/C; Attendant bed; Baby cot
+prakruthi-malleshwaram,Deluxe,10500,3,Birthing suite; Family sofa
+prakruthi-malleshwaram,ICU,15000,6,NICU adjacent; Obstetric ICU
+chinmaya-indiranagar,General Ward,1500,8,"Shared, 6 beds"
+chinmaya-indiranagar,Twin Sharing,3900,6,2 beds; A/C
+chinmaya-indiranagar,Single Private,5900,7,A/C; TV; Attendant bed
+chinmaya-indiranagar,Deluxe,9200,2,Recliner; Meal service
+chinmaya-indiranagar,ICU,14500,8,Ventilator ready
+tarangini-banashankari,General Ward,1100,14,"Shared, 8 beds"
+tarangini-banashankari,Twin Sharing,2900,7,2 beds; A/C
+tarangini-banashankari,Single Private,4400,6,A/C; TV; Attendant bed
+tarangini-banashankari,ICU,11000,6,Ventilator ready
+sirsi-chamarajpet,General Ward,300,26,"Shared, 12 beds"
+sirsi-chamarajpet,Twin Sharing,1400,5,2 beds; Fan
+sirsi-chamarajpet,Single Private,2600,3,A/C; Attached bath
+sirsi-chamarajpet,ICU,6500,11,Trauma ICU; Ventilator
+bggh-chamarajpet,General Ward,0,44,"Shared, 16 beds; No charge"
+bggh-chamarajpet,Twin Sharing,800,6,2 beds; Fan
+bggh-chamarajpet,ICU,4200,9,Ventilator
+hosahalli-peenya,General Ward,0,18,"Shared, 10 beds; No charge"
+hosahalli-peenya,Twin Sharing,600,3,2 beds; Fan
+hosahalli-peenya,ICU,3500,2,Basic ICU
+vanivilas-krmarket,General Ward,0,30,Shared maternity ward; No charge
+vanivilas-krmarket,Twin Sharing,700,8,2 beds
+vanivilas-krmarket,ICU,3800,5,Obstetric ICU; NICU adjacent
+meenakshi-koramangala,Twin Sharing,6200,4,2 beds; A/C
+meenakshi-koramangala,Single Private,9600,7,A/C; TV; Attendant bed; Physio access
+meenakshi-koramangala,Deluxe,14500,3,Recliner; In-room physio
+meenakshi-koramangala,HDU,10500,6,Post-op monitoring
+meenakshi-koramangala,ICU,17500,5,Post-surgical ICU
+ashwini-sadashivanagar,Twin Sharing,6800,3,2 beds; A/C
+ashwini-sadashivanagar,Single Private,10200,5,A/C; Attendant bed; Quiet wing
+ashwini-sadashivanagar,HDU,12500,7,Neuro step-down
+ashwini-sadashivanagar,ICU,22500,12,Neuro ICU; Continuous EEG

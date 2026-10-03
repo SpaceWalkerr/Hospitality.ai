@@ -444,13 +444,23 @@ node scripts/validate_palette.js "#18a07e,#bb881a,#c04637" --mode dark --surface
 
 Everything is synthetic. The three policy documents are fictional but modelled
 closely on the structure and vocabulary of real Indian health insurance
-paperwork — an IRDAI-style retail indemnity policy, an Ayushman Bharat PM-JAY
-entitlement record, and an employer group mediclaim certificate, with
-ESI/CGHS coordination clauses where they belong. The 14 Bengaluru hospitals,
-their room tariffs, package costs and empanelment are invented. No real
-insurer, facility or person is depicted.
+paperwork: an IRDAI-style retail indemnity policy, an Ayushman Bharat PM-JAY
+entitlement record, and an employer group mediclaim certificate, with ESI/CGHS
+coordination clauses where they belong.
 
----
+**Hospital data lives in spreadsheets** (`data/hospitals/*.csv`): hospitals,
+room categories and rates, insurer empanelment, procedure packages, and the
+insurers themselves. `npm run data:import` validates every row and generates
+`lib/data/dataset.json`; CI fails if the two drift apart. Onboarding a real
+data source, say for a pilot with one employer's insurer, is a matter of
+filling those sheets in. No code change is needed, including for a new insurer,
+whose policies are matched to its network through `insurers.csv`. The column
+guide is `data/hospitals/README.md`.
+
+Every hospital carries a `source`. The bundled 14 are `illustrative`, and the
+app labels them so on every card with a note above the list. Real rows must
+say when they were last checked, which is shown on screen too, and the import
+warns about anything older than six months.
 
 ## Known limits of the prototype
 

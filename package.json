@@ -11,7 +11,10 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "check": "npm run typecheck && npm run lint && npm run build",
-    "test:live-path": "node scripts/test-live-path.mjs"
+    "test:live-path": "node scripts/test-live-path.mjs",
+    "data:import": "node scripts/import-hospitals.mjs",
+    "data:check": "node scripts/import-hospitals.mjs --check",
+    "test:data": "node --test \"scripts/*.test.mjs\""
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",

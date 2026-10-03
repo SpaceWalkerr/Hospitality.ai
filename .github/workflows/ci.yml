@@ -26,6 +26,11 @@ jobs:
 
       - run: npm ci
 
+      # The hospital spreadsheets are valid, and lib/data/dataset.json was
+      # regenerated from them.
+      - run: npm run data:check
+      - run: npm run test:data
+
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
