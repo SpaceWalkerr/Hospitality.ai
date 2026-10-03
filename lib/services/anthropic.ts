@@ -1,4 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import type * as z from "zod/v4";
 
 /**
  * Single place where the Anthropic client is constructed.
@@ -20,6 +22,128 @@ export const EFFORT = (process.env.ANTHROPIC_EFFORT ?? "medium") as
   | "high";
 
 let cached: Anthropic | null = null;
+
+/**
+ * Input ceilings for anything that reaches the model. A full Indian policy
+ * wording runs to roughly 40-60 pages, well under 250k characters; anything
+ * larger is almost certainly not a single policy, and in Live mode one giant
+ * paste is a real bill. Enforced server-side because the client can be skipped.
+ */
+export const MAX_DOCUMENT_CHARS = 250_000;
+export const MAX_QUESTION_CHARS = 600;
+
+/**
+ * An error whose message is safe and useful to show the person using the app.
+ * Anything else that escapes a route is logged in full on the server and
+ * replaced with a plain sentence — the user should never see an HTTP status or
+ * a JSON body from an upstream provider.
+ */
+export class UserFacingError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "UserFacingError";
+  }
+}
+
+/** Turns anything thrown during a model call into a sentence a caregiver can act on. */
+export function toUserMessage(error: unknown): string {
+  if (error instanceof UserFacingError) return error.message;
+
+  // Full detail for whoever is operating the server. Never includes the key:
+  // the SDK does not put it in error messages.
+  console.error("[hospitality] model call failed:", error);
+
+  if (error instanceof Anthropic.AuthenticationError || error instanceof Anthropic.PermissionDeniedError) {
+    return "The AI service is not set up correctly on this server, so your policy could not be read. Please try again later.";
+  }
+  if (error instanceof Anthropic.RateLimitError) {
+    return "The AI service is busy right now. Please wait a minute and try again.";
+  }
+  if (error instanceof Anthropic.BadRequestError) {
+    return "The AI service could not process this request. If you uploaded a document, try pasting its text instead.";
+  }
+  if (error instanceof Anthropic.APIConnectionError) {
+    return "Could not reach the AI service. Check your connection and try again.";
+  }
+  if (error instanceof Anthropic.InternalServerError || (error instanceof Anthropic.APIError && (error.status ?? 0) >= 500)) {
+    return "The AI service is temporarily unavailable. Please try again in a few minutes.";
+  }
+  return "Something went wrong while reading your policy. Please try again.";
+}
+
+/**
+ * One structured-output call, validated by us rather than by the SDK.
+ *
+ * `messages.parse()` validates inside the SDK and throws before the caller can
+ * see why — so a document that ran out of tokens and one the service declined
+ * both arrive as the same opaque parse error. Here the stop reason is checked
+ * first, then the JSON, then the schema, and each failure gets its own
+ * sentence. The schema is still sent as `output_config.format`, so the API
+ * constrains the shape exactly as before.
+ */
+export async function createStructured<S extends z.ZodType>(
+  schema: S,
+  params: {
+    model: string;
+    max_tokens: number;
+    effort: "low" | "medium" | "high";
+    system: string;
+    messages: Anthropic.MessageParam[];
+  },
+  what: string,
+  signal?: AbortSignal,
+): Promise<z.infer<S>> {
+  const { effort, ...rest } = params;
+  const message = await getClient().messages.create(
+    { ...rest, output_config: { effort, format: zodOutputFormat(schema) } },
+    { signal },
+  );
+
+  assertUsableStop(message.stop_reason, what);
+
+  const text = message.content
+    .filter((b): b is Anthropic.TextBlock => b.type === "text")
+    .map((b) => b.text)
+    .join("");
+
+  let json: unknown;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    console.error(`[hospitality] ${what}: answer was not JSON (${text.length} chars)`);
+    throw new UserFacingError(unreadable(what));
+  }
+
+  const result = schema.safeParse(json);
+  if (!result.success) {
+    console.error(`[hospitality] ${what}: answer did not match the schema`, result.error.issues.slice(0, 5));
+    throw new UserFacingError(unreadable(what));
+  }
+  return result.data;
+}
+
+function unreadable(what: string) {
+  return what === "document"
+    ? "We could not read this document reliably. Please try again, or paste only the policy schedule and its terms."
+    : `We could not prepare this ${what}. Please try again.`;
+}
+
+/**
+ * Stop reasons that mean the structured answer is unusable. Checked explicitly
+ * so the user hears why, instead of getting a generic parse failure.
+ */
+export function assertUsableStop(stopReason: string | null | undefined, what: string) {
+  if (stopReason === "refusal") {
+    throw new UserFacingError(
+      `The AI service declined to process this ${what}. If it is a health insurance document, try pasting the text of the policy schedule only.`,
+    );
+  }
+  if (stopReason === "max_tokens") {
+    throw new UserFacingError(
+      `This ${what} is too long to read in one go. Try uploading only the policy schedule and the terms and conditions.`,
+    );
+  }
+}
 
 export function isDemoMode(): boolean {
   return !process.env.ANTHROPIC_API_KEY;

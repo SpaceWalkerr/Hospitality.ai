@@ -55,6 +55,6 @@ test.describe("Journey", () => {
     const ask = page.getByRole("region", { name: "Ask about your cover" });
     await ask.getByRole("button", { name: "Is a private room worth it here?" }).click();
     await expect(ask.getByText("You asked:")).toBeVisible();
-    await expect(ask.locator("[aria-live=polite]")).toContainText("Demo Mode");
+    await expect(ask.locator("[aria-live=polite]")).toContainText("not switched on in this preview");
   });
 });

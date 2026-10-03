@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     ctx: CaseContext;
   };
 
-  return ndjsonStream(async (emit) => {
+  return ndjsonStream(async (emit, signal) => {
     if (!policy?.insurerId) {
       emit({ type: "error", message: "No policy has been loaded yet." });
       return;
@@ -44,8 +44,12 @@ export async function POST(req: NextRequest) {
       return;
     }
 
-    await streamComparison(policy, matches, ctx, (text) =>
-      emit({ type: "delta", text }),
+    await streamComparison(
+      policy,
+      matches,
+      ctx,
+      (text) => emit({ type: "delta", text }),
+      signal,
     );
     emit({ type: "done", demo: false });
   });

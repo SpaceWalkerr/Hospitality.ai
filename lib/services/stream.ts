@@ -1,4 +1,5 @@
 import type { StreamEvent } from "@/lib/types";
+import { toUserMessage } from "./anthropic";
 
 /**
  * Newline-delimited JSON streaming.
@@ -6,30 +7,51 @@ import type { StreamEvent } from "@/lib/types";
  * The client reads these with a plain `fetch` + ReadableStream, which keeps the
  * transport dependency-free and lets a single response carry both structured
  * payloads (the normalized policy, the ranking) and token deltas.
+ *
+ * The producer gets an AbortSignal that fires when the reader goes away — a
+ * closed tab, a navigation, a cancelled fetch. Pass it to the model call: in
+ * Live mode an abandoned stream would otherwise keep generating, and billing,
+ * until the model finished an answer nobody is reading.
  */
 export function ndjsonStream(
-  producer: (emit: (event: StreamEvent) => void) => Promise<void>,
+  producer: (emit: (event: StreamEvent) => void, signal: AbortSignal) => Promise<void>,
 ): Response {
   const encoder = new TextEncoder();
+  const abort = new AbortController();
+  let closed = false;
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      let closed = false;
       const emit = (event: StreamEvent) => {
         if (closed) return;
-        controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+        try {
+          controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+        } catch {
+          // The reader left between our check and the write.
+          closed = true;
+          abort.abort();
+        }
       };
 
       try {
-        await producer(emit);
+        await producer(emit, abort.signal);
       } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Something went wrong.";
-        emit({ type: "error", message });
+        // Someone leaving is not a failure, and there is nobody to tell.
+        if (!abort.signal.aborted) emit({ type: "error", message: toUserMessage(error) });
       } finally {
-        closed = true;
-        controller.close();
+        if (!closed) {
+          closed = true;
+          try {
+            controller.close();
+          } catch {
+            /* already closed by a cancel */
+          }
+        }
       }
+    },
+    cancel() {
+      closed = true;
+      abort.abort();
     },
   });
 

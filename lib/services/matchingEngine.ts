@@ -11,7 +11,7 @@ import type {
   TradeOff,
 } from "@/lib/types";
 import { getLocality, listHospitals } from "@/lib/data/hospitals";
-import { MODEL, SAFETY_PREAMBLE, getClient } from "./anthropic";
+import { MODEL, SAFETY_PREAMBLE, UserFacingError, getClient } from "./anthropic";
 
 /**
  * Hospital & Room Matching Engine.
@@ -521,6 +521,7 @@ export async function streamComparison(
   matches: HospitalMatch[],
   ctx: CaseContext,
   onDelta: (text: string) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
   const client = getClient();
   const top = matches.slice(0, 4).map((m) => ({
@@ -560,8 +561,15 @@ ${JSON.stringify(top, null, 2)}
 </ranking>`,
       },
     ],
-  });
+  }, { signal });
 
   stream.on("text", onDelta);
-  await stream.finalMessage();
+  const final = await stream.finalMessage();
+  // A refusal mid-stream leaves partial text on screen; say so plainly
+  // rather than letting the reader take a fragment for the whole answer.
+  if (final.stop_reason === "refusal") {
+    throw new UserFacingError(
+      "The AI service stopped before finishing this comparison. Please try again, and confirm the details with your insurer.",
+    );
+  }
 }

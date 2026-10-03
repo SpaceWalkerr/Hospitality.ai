@@ -202,9 +202,8 @@ function Start({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
           </h2>
           <p className="mt-4 max-w-md text-base text-ink-muted">
             The samples are complete, realistic policy documents: a retail
-            floater, a government scheme and an employer cover. They work
-            without an API key, so they are the fastest way to see what
-            Hospitality does.
+            floater, a government scheme and an employer cover. They are the
+            fastest way to see what Hospitality does.
           </p>
           <ul className="mt-6 space-y-3 text-sm text-ink-muted">
             <li className="flex gap-3">
@@ -426,10 +425,8 @@ function StartCard({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
 
         {config?.demo && tab !== "sample" && (
           <div className="mt-3 rounded-[12px] border border-ochre-300/50 bg-ochre-50 p-3.5 text-xs text-ochre-700">
-            Demo Mode is on because no{" "}
-            <code className="font-mono">ANTHROPIC_API_KEY</code> is set. Your
-            own document can be added, but it cannot be parsed until a key is
-            configured — the three samples work either way.
+            This is a preview: reading your own document is not switched on
+            yet. You can try everything with the three sample policies.
           </div>
         )}
       </div>

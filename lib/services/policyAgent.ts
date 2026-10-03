@@ -1,14 +1,23 @@
 import * as z from "zod/v4";
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import type {
   Citation,
   NormalizedPolicy,
   PolicySummaryPoint,
 } from "@/lib/types";
 import {
+  CAP_MODES,
+  ROOM_CATEGORIES,
+  ROOM_SYNONYMS,
+  enumField,
+  pickCapMode,
+  pickEnum,
+} from "./enums";
+import {
   EFFORT,
   MODEL,
   SAFETY_PREAMBLE,
+  UserFacingError,
+  createStructured,
   getClient,
   indexDocument,
   verifyQuote,
@@ -40,28 +49,15 @@ const CitationSchema = z.object({
   lineEnd: z.number().int().describe("Last line number of the quote."),
 });
 
-const RoomCategoryEnum = z.enum([
-  "General Ward",
-  "Twin Sharing",
-  "Single Private",
-  "Deluxe",
-  "Suite",
-  "ICU",
-  "HDU",
-]);
-
-const CapModeEnum = z.enum([
-  "percent_of_sum_insured_per_day",
-  "absolute_per_day",
-  "category_capped",
-  "no_limit",
-]);
+// Declared as strings with the allowed values in the description; see
+// enums.ts for why a strict z.enum here is a crash waiting to happen.
+const CapModeField = enumField(CAP_MODES);
 
 const PolicyExtraction = z.object({
   insurer: z.string().describe("Name of the insurer or scheme authority."),
   planName: z.string(),
   policyNumber: z.string().nullable(),
-  kind: z.enum(["government", "private", "employer", "topup"]),
+  kind: enumField(["government", "private", "employer", "topup"]),
   policyHolder: z.string().nullable(),
   validFrom: z.string().nullable().describe("ISO date or as printed."),
   validTo: z.string().nullable(),
@@ -73,17 +69,18 @@ const PolicyExtraction = z.object({
   }),
 
   roomEligibility: z.object({
-    eligibleCategory: RoomCategoryEnum.describe(
+    eligibleCategory: enumField(
+      ROOM_CATEGORIES,
       "Highest room category the policy funds without penalty.",
     ),
-    capMode: CapModeEnum,
+    capMode: CapModeField,
     capValue: z
       .number()
       .nullable()
       .describe(
         "Percent when percent mode (1 for 1%), rupees per day when absolute, null otherwise.",
       ),
-    icuCapMode: CapModeEnum,
+    icuCapMode: CapModeField,
     icuCapValue: z.number().nullable(),
     proportionateDeduction: z
       .boolean()
@@ -148,7 +145,7 @@ const PolicyExtraction = z.object({
       z.object({
         item: z.string(),
         detail: z.string(),
-        kind: z.enum(["permanent", "waiting_period"]),
+        kind: enumField(["permanent", "waiting_period"]),
         waitingMonths: z.number().nullable(),
         citation: CitationSchema,
       }),
@@ -171,14 +168,14 @@ const PolicyExtraction = z.object({
     .array(z.string())
     .describe("Things a patient would want to know that this document does not say."),
 
-  confidence: z.enum(["high", "medium", "low"]),
+  confidence: enumField(["high", "medium", "low"]),
 
   summaryPoints: z
     .array(
       z.object({
         heading: z.string().describe("4-7 words."),
         body: z.string().describe("One or two sentences, plain language."),
-        tone: z.enum(["good", "watch", "limit"]),
+        tone: enumField(["good", "watch", "limit"]),
       }),
     )
     .describe(
@@ -210,30 +207,50 @@ RULES FOR EXTRACTION:
 
 export async function extractPolicy(
   documentText: string,
+  signal?: AbortSignal,
 ): Promise<PolicyExtractionResult> {
-  const client = getClient();
   const doc = indexDocument(documentText);
 
-  const message = await client.messages.parse({
-    model: MODEL,
-    max_tokens: 16000,
-    output_config: {
+  const raw = await createStructured(
+    PolicyExtraction,
+    {
+      model: MODEL,
+      max_tokens: 16000,
       effort: EFFORT,
-      format: zodOutputFormat(PolicyExtraction),
+      system: EXTRACT_SYSTEM,
+      messages: [
+        {
+          role: "user",
+          content: `Here is the policy document.\n\n<policy_document>\n${withLineNumbers(documentText)}\n</policy_document>`,
+        },
+      ],
     },
-    system: EXTRACT_SYSTEM,
-    messages: [
-      {
-        role: "user",
-        content: `Here is the policy document.\n\n<policy_document>\n${withLineNumbers(documentText)}\n</policy_document>`,
-      },
-    ],
-  });
+    "document",
+    signal,
+  );
 
-  const raw = message.parsed_output;
-  if (!raw) {
-    throw new Error("The model did not return a parsable policy structure.");
-  }
+  // Map free-text enum answers onto the vocabulary, noting any we had to guess.
+  const guessed: string[] = [];
+  const note = <T extends string>(field: string, picked: { value: T; exact: boolean }) => {
+    if (!picked.exact) guessed.push(field);
+    return picked.value;
+  };
+  const kind = note(
+    "policy type",
+    pickEnum(raw.kind, ["government", "private", "employer", "topup"] as const, "private"),
+  );
+  const eligibleCategory = note(
+    "room entitlement",
+    pickEnum(raw.roomEligibility.eligibleCategory, ROOM_CATEGORIES, "General Ward", ROOM_SYNONYMS),
+  );
+  const capMode = note(
+    "room limit type",
+    pickCapMode(raw.roomEligibility.capMode, raw.roomEligibility.capValue),
+  );
+  const icuCapMode = note(
+    "ICU limit type",
+    pickCapMode(raw.roomEligibility.icuCapMode, raw.roomEligibility.icuCapValue),
+  );
 
   const verify = (c: z.infer<typeof CitationSchema>): Citation => ({
     clause: c.clause,
@@ -250,7 +267,7 @@ export async function extractPolicy(
     insurerId: inferInsurerId(raw.insurer, raw.planName),
     planName: raw.planName,
     policyNumber: raw.policyNumber,
-    kind: raw.kind,
+    kind,
     policyHolder: raw.policyHolder,
     validFrom: raw.validFrom,
     validTo: raw.validTo,
@@ -260,18 +277,18 @@ export async function extractPolicy(
       citation: verify(raw.sumInsured.citation),
     },
     roomEligibility: {
-      eligibleCategory: raw.roomEligibility.eligibleCategory,
-      capMode: raw.roomEligibility.capMode,
+      eligibleCategory,
+      capMode,
       capValue: raw.roomEligibility.capValue,
       resolvedDailyCap: resolveCap(
-        raw.roomEligibility.capMode,
+        capMode,
         raw.roomEligibility.capValue,
         sumInsured,
       ),
-      icuCapMode: raw.roomEligibility.icuCapMode,
+      icuCapMode,
       icuCapValue: raw.roomEligibility.icuCapValue,
       resolvedIcuDailyCap: resolveCap(
-        raw.roomEligibility.icuCapMode,
+        icuCapMode,
         raw.roomEligibility.icuCapValue,
         sumInsured,
       ),
@@ -318,21 +335,45 @@ export async function extractPolicy(
     exclusions: raw.exclusions.map((e) => ({
       item: e.item,
       detail: e.detail,
-      kind: e.kind,
+      kind: pickEnum(e.kind, ["permanent", "waiting_period"] as const, "permanent", {
+        waiting: "waiting_period",
+      }).value,
       waitingMonths: e.waitingMonths ?? undefined,
       citation: verify(e.citation),
     })),
     networkHospitals: raw.networkHospitals,
     schemes: raw.schemes,
-    gaps: raw.gaps,
-    confidence: raw.confidence,
+    gaps: guessed.length
+      ? [
+          ...raw.gaps,
+          `Some details came back in an unexpected form and were read conservatively: ${guessed.join(", ")}. Check these against the document.`,
+        ]
+      : raw.gaps,
+    // A guessed field caps confidence: the UI shows it, and so should the badge.
+    confidence: capConfidence(
+      pickEnum(raw.confidence, ["high", "medium", "low"] as const, "low").value,
+      guessed.length > 0,
+    ),
   };
 
-  return { policy, summaryPoints: raw.summaryPoints };
+  const summaryPoints: PolicySummaryPoint[] = raw.summaryPoints.map((p) => ({
+    heading: p.heading,
+    body: p.body,
+    tone: pickEnum(p.tone, ["good", "watch", "limit"] as const, "watch").value,
+  }));
+
+  return { policy, summaryPoints };
+}
+
+function capConfidence(
+  stated: "high" | "medium" | "low",
+  anyGuessed: boolean,
+): "high" | "medium" | "low" {
+  return anyGuessed && stated === "high" ? "medium" : stated;
 }
 
 function resolveCap(
-  mode: z.infer<typeof CapModeEnum>,
+  mode: (typeof CAP_MODES)[number],
   value: number | null,
   sumInsured: number,
 ): number | null {
@@ -380,6 +421,7 @@ FORMAT:
 export async function streamPolicyBrief(
   policy: NormalizedPolicy,
   onDelta: (text: string) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
   const client = getClient();
   const stream = client.messages.stream({
@@ -393,10 +435,17 @@ export async function streamPolicyBrief(
         content: `<extraction>\n${JSON.stringify(stripCitations(policy), null, 2)}\n</extraction>`,
       },
     ],
-  });
+  }, { signal });
 
   stream.on("text", onDelta);
-  await stream.finalMessage();
+  const final = await stream.finalMessage();
+  // A refusal mid-stream leaves partial text on screen; say so plainly
+  // rather than letting the reader take a fragment for the whole answer.
+  if (final.stop_reason === "refusal") {
+    throw new UserFacingError(
+      "The AI service stopped before finishing your summary. Please try again, and confirm the details with your insurer.",
+    );
+  }
 }
 
 /** Citations are for the UI, not for the summarizer — drop them to save tokens. */

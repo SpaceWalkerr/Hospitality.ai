@@ -30,6 +30,11 @@ jobs:
       - run: npm run lint
       - run: npm run build
 
+      # The model-calling code paths, against a mock of the Messages API with a
+      # fake key. Demo Mode never reaches them, so the e2e suite cannot.
+      - name: Live-path test (mock API, no secrets)
+        run: npm run test:live-path
+
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 

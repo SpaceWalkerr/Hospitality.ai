@@ -1,5 +1,4 @@
 import * as z from "zod/v4";
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import type {
   CaseContext,
   Citation,
@@ -8,10 +7,13 @@ import type {
   NormalizedPolicy,
   StageGuidance,
 } from "@/lib/types";
+import { enumField, pickEnum } from "./enums";
 import {
   EFFORT,
   MODEL,
   SAFETY_PREAMBLE,
+  UserFacingError,
+  createStructured,
   getClient,
   indexDocument,
   verifyQuote,
@@ -82,7 +84,7 @@ const StageGuidanceSchema = z.object({
         detail: z
           .string()
           .describe("Two or three sentences. Concrete, with rupee amounts where the policy gives them."),
-        kind: z.enum(["action", "cost", "watch", "document"]),
+        kind: enumField(["action", "cost", "watch", "document"]),
         citation: GuidanceCitation.nullable().describe(
           "Cite the policy clause when this comes from the document. null when it is general process guidance.",
         ),
@@ -122,22 +124,21 @@ export async function generateStageGuidance(
   ctx: CaseContext,
   chosenHospital?: string,
   chosenRoom?: string,
+  signal?: AbortSignal,
 ): Promise<StageGuidance> {
-  const client = getClient();
   const doc = indexDocument(documentText);
 
-  const message = await client.messages.parse({
-    model: MODEL,
-    max_tokens: 8000,
-    output_config: {
+  const raw = await createStructured(
+    StageGuidanceSchema,
+    {
+      model: MODEL,
+      max_tokens: 8000,
       effort: EFFORT,
-      format: zodOutputFormat(StageGuidanceSchema),
-    },
-    system: JOURNEY_SYSTEM,
-    messages: [
-      {
-        role: "user",
-        content: `<stage>${stage} — ${STAGE_META[stage].label}</stage>
+      system: JOURNEY_SYSTEM,
+      messages: [
+        {
+          role: "user",
+          content: `<stage>${stage} — ${STAGE_META[stage].label}</stage>
 <stage_focus>${STAGE_FOCUS[stage]}</stage_focus>
 
 <situation>
@@ -151,12 +152,12 @@ room: ${chosenRoom ?? "not chosen yet"}
 <policy_document>
 ${withLineNumbers(documentText)}
 </policy_document>`,
-      },
-    ],
-  });
-
-  const raw = message.parsed_output;
-  if (!raw) throw new Error("The model did not return usable stage guidance.");
+        },
+      ],
+    },
+    "stage guidance",
+    signal,
+  );
 
   const items: GuidanceItem[] = raw.items.map((item) => {
     let citation: Citation | null = null;
@@ -169,7 +170,8 @@ ${withLineNumbers(documentText)}
         ...verifyQuote(doc, item.citation.quote),
       };
     }
-    return { title: item.title, detail: item.detail, kind: item.kind, citation };
+    const kind = pickEnum(item.kind, ["action", "cost", "watch", "document"] as const, "watch").value;
+    return { title: item.title, detail: item.detail, kind, citation };
   });
 
   return { stage, headline: raw.headline, items };
@@ -193,6 +195,7 @@ export async function streamStageAnswer(
   stage: JourneyStage,
   question: string,
   onDelta: (text: string) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
   const client = getClient();
   const stream = client.messages.stream({
@@ -212,8 +215,15 @@ ${withLineNumbers(documentText)}
 <question>${question}</question>`,
       },
     ],
-  });
+  }, { signal });
 
   stream.on("text", onDelta);
-  await stream.finalMessage();
+  const final = await stream.finalMessage();
+  // A refusal mid-stream leaves partial text on screen; say so plainly
+  // rather than letting the reader take a fragment for the whole answer.
+  if (final.stop_reason === "refusal") {
+    throw new UserFacingError(
+      "The AI service stopped before finishing this question. Please try again, and confirm the details with your insurer.",
+    );
+  }
 }

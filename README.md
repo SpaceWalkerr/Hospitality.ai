@@ -81,8 +81,26 @@ and dark. They run against the production standalone server on port 3100 with
 never send a document to a model. Set `E2E_SKIP_BUILD=1` to reuse an existing
 build.
 
-CI (`.github/workflows/ci.yml`) runs typecheck, lint, build and the e2e suite
-on every push and pull request, and checks that the Docker image builds.
+**Live-path test.** Demo Mode never calls the Anthropic SDK, so the e2e suite
+cannot see the code that only runs once a key is set. `npm run test:live-path`
+covers it without a real key: it starts a mock of the Messages API, runs the
+built app against it with a fake key (`ANTHROPIC_BASE_URL` pointed at the
+mock), and drives every model-calling route through clean answers, messy
+answers (off-vocabulary values, an invented quote), refusals, truncation,
+non-JSON, 401, 400, 529, an oversized upload and an abandoned request. It also
+inspects every request we send: model, safety preamble, no prefill, valid
+effort, a schema strict mode accepts, and the key never appearing in logs.
+
+```bash
+npm run build && npm run test:live-path   # 57 checks, ~30s, no secrets
+```
+
+What it cannot tell you is whether the real model answers well. That is the
+first thing to check once a key is set — see **Turning on Live mode**.
+
+CI (`.github/workflows/ci.yml`) runs typecheck, lint, build, the live-path
+test and the e2e suite on every push and pull request, and checks that the
+Docker image builds.
 
 ## Deploying
 
@@ -107,6 +125,40 @@ The image runs the standalone server as a non-root user, listens on `$PORT`
 
 **Any Node host** — `npm ci && npm run build && npm start`. `npm start` runs
 the standalone server and honours `PORT` and `HOSTNAME`.
+
+### Turning on Live mode
+
+The public deployment runs in Demo Mode. To read real documents:
+
+1. **Create an Anthropic API key** at console.anthropic.com, and set a monthly
+   spend limit on it there before anything else.
+2. **Set up shared rate limiting.** In Vercel → Storage, add Upstash Redis
+   (the integration sets `KV_REST_API_URL`/`_TOKEN` for you). Without it each
+   serverless instance counts separately, and the global ceiling that protects
+   your bill does not hold.
+3. **Add `ANTHROPIC_API_KEY`** in Vercel → Project → Settings → Environment
+   Variables, for Production. Redeploy.
+4. **Check it.** The header pill should read *Live*. Load each of the three
+   samples and confirm the coverage page matches the source document — every
+   clause chip should say *Verified in source*. Then try one real policy PDF.
+
+Everything on our side of that call is covered by `npm run test:live-path`.
+What only a real key can show is answer quality: whether the extraction is
+right for documents you did not write. Check a handful of real policies by
+hand before telling anyone the numbers are reliable.
+
+**What a request costs** is driven by document length. A policy is sent once
+for extraction and again with each journey stage and each question, so a full
+session on a long policy is several full-document calls. Watch the usage page
+in the Anthropic console for the first week and adjust `ANTHROPIC_EFFORT` or
+the rate limits below if needed.
+
+**Failure behaviour.** Any upstream error — bad key, rate limit, outage,
+refusal, an answer cut off at the token limit — reaches the user as one plain
+sentence; the full error is logged on the server. Closing the page mid-answer
+cancels the model call, so abandoned sessions stop costing money. Documents
+over 250,000 characters and questions over 600 are refused before any call is
+made.
 
 ### Rate limiting
 

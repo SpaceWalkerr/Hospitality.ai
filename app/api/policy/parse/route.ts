@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { isDemoMode } from "@/lib/services/anthropic";
+import { MAX_DOCUMENT_CHARS, isDemoMode } from "@/lib/services/anthropic";
 import { extractPolicy, streamPolicyBrief } from "@/lib/services/policyAgent";
 import { demoBundle, isDemoSupported } from "@/lib/services/demoFixtures";
 import { getSamplePolicy } from "@/lib/data/samplePolicies";
@@ -26,9 +26,18 @@ export async function POST(req: NextRequest) {
   const documentText = sample?.text ?? body.text ?? "";
   const demo = isDemoMode();
 
-  return ndjsonStream(async (emit) => {
+  return ndjsonStream(async (emit, signal) => {
     if (!documentText.trim()) {
       emit({ type: "error", message: "No policy text was provided." });
+      return;
+    }
+
+    if (documentText.length > MAX_DOCUMENT_CHARS) {
+      emit({
+        type: "error",
+        message:
+          "This document is longer than a single health policy usually is. Please upload just the policy schedule and its terms and conditions.",
+      });
       return;
     }
 
@@ -36,7 +45,7 @@ export async function POST(req: NextRequest) {
       emit({
         type: "error",
         message:
-          "Demo Mode can only read the three built-in sample policies. To parse your own document, add an ANTHROPIC_API_KEY to .env.local and restart the server.",
+          "This preview can only read the three sample policies for now — reading your own document is not switched on yet. Please try one of the samples.",
       });
       return;
     }
@@ -65,7 +74,7 @@ export async function POST(req: NextRequest) {
     }
 
     emit({ type: "status", label: "Extracting clauses", step: 2, of: 4 });
-    const { policy, summaryPoints } = await extractPolicy(documentText);
+    const { policy, summaryPoints } = await extractPolicy(documentText, signal);
 
     emit({ type: "status", label: "Verifying citations against source", step: 3, of: 4 });
     emit({ type: "policy", policy });
@@ -73,7 +82,7 @@ export async function POST(req: NextRequest) {
 
     emit({ type: "status", label: "Writing your summary", step: 4, of: 4 });
     emit({ type: "summary_start" });
-    await streamPolicyBrief(policy, (text) => emit({ type: "delta", text }));
+    await streamPolicyBrief(policy, (text) => emit({ type: "delta", text }), signal);
     emit({ type: "done", demo: false });
   });
 }

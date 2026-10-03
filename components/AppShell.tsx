@@ -151,7 +151,7 @@ function ModePill({ demo, model }: { demo: boolean; model: string | null }) {
     <span
       title={
         demo
-          ? "No API key is set, so responses come from built-in fixtures."
+          ? "Preview: answers come from prepared examples, not a live AI model."
           : `Live responses from ${model}.`
       }
       className={`inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-label leading-none font-medium ${
