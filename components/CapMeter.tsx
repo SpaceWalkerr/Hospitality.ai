@@ -1,6 +1,6 @@
 "use client";
 
-import { inr } from "@/lib/services/matchingEngine";
+import { inr } from "@/lib/format";
 
 /**
  * The room-rent picture, in one bar.

@@ -1,4 +1,7 @@
 import * as z from "zod/v4";
+import { STAGES, STAGE_META } from "@/lib/journey";
+
+export { STAGES, STAGE_META };
 import type {
   CaseContext,
   Citation,
@@ -29,42 +32,6 @@ import {
  * pre-authorisation window while they can still act on it, not after.
  */
 
-export const STAGES: JourneyStage[] = [
-  "admission",
-  "investigation",
-  "procedure",
-  "recovery",
-];
-
-export const STAGE_META: Record<
-  JourneyStage,
-  { label: string; caption: string; blurb: string }
-> = {
-  admission: {
-    label: "Admission",
-    caption: "Getting a bed",
-    blurb:
-      "Pre-authorisation, room choice and the paperwork the insurance desk will ask for.",
-  },
-  investigation: {
-    label: "Investigation",
-    caption: "Tests and diagnosis",
-    blurb:
-      "Which investigations sit inside the claim, and which are billed separately.",
-  },
-  procedure: {
-    label: "Procedure",
-    caption: "Treatment and surgery",
-    blurb:
-      "Implants, consumables and enhancement requests — where estimates move the most.",
-  },
-  recovery: {
-    label: "Recovery",
-    caption: "Discharge and claim",
-    blurb:
-      "Final bill scrutiny, discharge summary, and the window for post-hospitalisation costs.",
-  },
-};
 
 const GuidanceCitation = z.object({
   clause: z.string(),

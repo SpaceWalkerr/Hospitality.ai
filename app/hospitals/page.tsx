@@ -25,7 +25,8 @@ import {
 } from "@/components/ui";
 import { ArrowRight, Chevron, Sliders, Spark } from "@/components/ui/Icons";
 import { CONDITION_PRESETS, LOCALITIES } from "@/lib/data/hospitals";
-import { coPayIsConditional, inr } from "@/lib/services/matchingEngine";
+import { inr } from "@/lib/format";
+import { coPayIsConditional } from "@/lib/policyRules";
 import { useNdjson, useStore } from "@/lib/store";
 import type { CaseContext, HospitalMatch, NormalizedPolicy } from "@/lib/types";
 

@@ -23,8 +23,7 @@ import {
 import type { Tone } from "@/components/ui";
 import { ArrowRight, Check, Spark } from "@/components/ui/Icons";
 import { useNdjson, useStore } from "@/lib/store";
-import { inr } from "@/lib/services/matchingEngine";
-import { formatDate } from "@/lib/format";
+import { formatDate, inr } from "@/lib/format";
 import type { Citation, Exclusion, NormalizedPolicy } from "@/lib/types";
 
 export default function CoveragePage() {

@@ -1,12 +1,15 @@
 import type { NextConfig } from "next";
+import { buildCsp } from "./lib/csp";
 
 /**
- * Security headers applied to every response. A Content-Security-Policy is
- * deliberately not set here: the pre-paint theme script and Next's own inline
- * bootstrapping would need per-request nonces (middleware), which is worth
- * doing before a real launch but is more than a static header can express.
+ * Security headers applied to every response, including the
+ * Content-Security-Policy (see lib/csp.ts for why it is static).
  */
 const securityHeaders = [
+  {
+    key: "Content-Security-Policy",
+    value: buildCsp(process.env.NODE_ENV === "development"),
+  },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Frame-Options", value: "DENY" },

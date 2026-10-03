@@ -19,11 +19,11 @@ import {
   StreamingProse,
 } from "@/components/ui";
 import { ArrowLeft, ArrowRight, Check, Refresh, Spark } from "@/components/ui/Icons";
-import { STAGES, STAGE_META } from "@/lib/services/journeyCopilot";
+import { STAGES, STAGE_META } from "@/lib/journey";
 import { StageSpine } from "@/components/StageSpine";
 import { Reveal } from "@/components/motion";
 import { getHospital } from "@/lib/data/hospitals";
-import { inr } from "@/lib/services/matchingEngine";
+import { inr } from "@/lib/format";
 import { useNdjson, useStore } from "@/lib/store";
 import type { GuidanceItem, JourneyStage } from "@/lib/types";
 

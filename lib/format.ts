@@ -12,3 +12,8 @@ export function formatDate(value: string | null): string | null {
     timeZone: "UTC",
   });
 }
+
+/** ₹1,20,000 — Indian digit grouping, whole rupees. */
+export function inr(n: number): string {
+  return `₹${n.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+}

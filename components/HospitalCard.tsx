@@ -3,7 +3,8 @@
 import { CapMeter } from "./CapMeter";
 import { Button, Expander, Pill } from "./ui";
 import { Check } from "./ui/Icons";
-import { coPayIsConditional, inr } from "@/lib/services/matchingEngine";
+import { inr } from "@/lib/format";
+import { coPayIsConditional } from "@/lib/policyRules";
 import type { HospitalMatch, NormalizedPolicy } from "@/lib/types";
 
 const TYPE_LABEL: Record<string, string> = {

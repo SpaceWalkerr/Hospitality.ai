@@ -1,6 +1,6 @@
 "use client";
 
-import { STAGES, STAGE_META } from "@/lib/services/journeyCopilot";
+import { STAGES, STAGE_META } from "@/lib/journey";
 import type { JourneyStage } from "@/lib/types";
 
 /**

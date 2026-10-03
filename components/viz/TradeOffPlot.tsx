@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { HospitalMatch, NormalizedPolicy } from "@/lib/types";
-import { inr } from "@/lib/services/matchingEngine";
+import { inr } from "@/lib/format";
 
 /**
  * The trade-off plot.

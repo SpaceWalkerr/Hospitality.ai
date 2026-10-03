@@ -221,15 +221,31 @@ so many clients together can't run a live key up either. Limits live in
 | `RATE_LIMIT_GLOBAL_PER_HOUR` | Global model-call ceiling (default 600). |
 | `RATE_LIMIT=off` | Disable entirely — local debugging only. |
 
-**Before a real launch**
+### Security
 
-- `npm audit` reports advisories in `tar`, reached only through `unpdf 0.12`'s
-  optional `canvas` dependency (install-time tooling, not the upload path).
-  The fix is `unpdf` 1.x, a breaking upgrade to PDF extraction — worth doing,
-  with the PDF tests re-run.
-- Security headers are set in `next.config.ts`; a Content-Security-Policy is
-  not, because the inline theme script and Next's bootstrapping need per-request
-  nonces via middleware.
+- **Content-Security-Policy**, set as a static header (`lib/csp.ts`,
+  `next.config.ts`): scripts and connections from this origin only, no
+  framing, no plugins, no `<base>` or form hijacking. Scripts are
+  `'self' 'unsafe-inline'` rather than nonce-based, deliberately. A nonce
+  forces every page to render per request, and we built and measured that:
+  under parallel load, per-request rendering produced a React hydration
+  failure on roughly 1 in 10 loads (with or without the nonce itself), while
+  the prerendered build failed 0 of 540. So the pages stay prerendered. The
+  cost is that an injected *inline* script is not blocked; the exposure is
+  small, because React escapes everything it renders and model output is shown
+  as text, never HTML. `e2e/csp.spec.ts` watches every screen for violations
+  and hydration failures, and fails if pages stop being prerendered.
+- **Server code stays on the server.** `lib/services/*` imports
+  `server-only`, so the build fails if a browser component imports it.
+  Before this, the system prompts, the Anthropic SDK and Zod were all shipped
+  to every visitor — no key was exposed, but it cost about 50 kB on every
+  page. Browser code uses `lib/format`, `lib/journey` and `lib/policyRules`.
+- **Dependencies.** `unpdf` is on 1.x, which removed the `canvas → tar`
+  chain behind 12 advisories (one critical). `npm audit --omit=dev` now
+  reports one item: the `postcss` that Next.js 15 bundles for build-time CSS
+  processing of our own stylesheets — not user input. The fix is Next.js 16,
+  a major upgrade worth planning on its own. The remaining dev-only advisories
+  sit inside ESLint's glob matching.
 
 ---
 

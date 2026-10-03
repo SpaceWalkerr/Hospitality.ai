@@ -1,3 +1,8 @@
+// Fails the build if anything in the browser bundle imports this module (and
+// everything in lib/services does). The system prompts, the SDK and the
+// schemas belong on the server; client code uses lib/format, lib/journey and
+// lib/policyRules instead.
+import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import type * as z from "zod/v4";
